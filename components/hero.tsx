@@ -1,56 +1,44 @@
-import { Home as HomeIcon, Key, ArrowRight } from "lucide-react";
-import { Button } from "./ui/button";
-import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { NextLogo } from "./next-logo";
+import { SupabaseLogo } from "./supabase-logo";
 
-export async function Hero() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
-
+export function Hero() {
   return (
-    <div className="flex flex-col gap-12 items-center text-center">
-      <div className="flex items-center gap-3 justify-center">
-        <HomeIcon className="h-10 w-10 text-primary" />
-        <h1 className="text-5xl lg:text-6xl font-bold tracking-tight">
-          HeartHub
-        </h1>
+    <div className="flex flex-col gap-16 items-center">
+      <div className="flex gap-8 justify-center items-center">
+        <a
+          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <SupabaseLogo />
+        </a>
+        <span className="border-l rotate-45 h-6" />
+        <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
+          <NextLogo />
+        </a>
       </div>
-      
-      <div className="space-y-4 max-w-3xl">
-        <p className="text-2xl lg:text-3xl font-semibold">
-          Your Home, Your Community, Your Way
-        </p>
-        <p className="text-lg lg:text-xl text-muted-foreground">
-          The modern platform connecting renters with property owners. 
-          Find your perfect home or manage your portfolio with ease.
-        </p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        {user ? (
-          <>
-            <Button asChild size="lg" className="text-lg px-8">
-              <Link href="/protected">
-                Go to Dashboard
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button asChild size="lg" className="text-lg px-8">
-              <Link href="/auth/sign-up">
-                <Key className="mr-2 h-5 w-5" />
-                Get Started
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="text-lg px-8">
-              <Link href="/auth/login">Sign In</Link>
-            </Button>
-          </>
-        )}
-      </div>
+      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
+      <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">
+        The fastest way to build apps with{" "}
+        <a
+          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
+          target="_blank"
+          className="font-bold hover:underline"
+          rel="noreferrer"
+        >
+          Supabase
+        </a>{" "}
+        and{" "}
+        <a
+          href="https://nextjs.org/"
+          target="_blank"
+          className="font-bold hover:underline"
+          rel="noreferrer"
+        >
+          Next.js
+        </a>
+      </p>
+      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
     </div>
   );
 }
