@@ -176,12 +176,12 @@ export default function ApplicationsPage() {
                   </Button>
                   {application.status === "pending" && (
                     <>
-                      <Button asChild variant="outline" size="sm" className="bg-green-50 hover:bg-green-100">
+                      <Button asChild variant="outline" size="sm" className="bg-green-200 hover:bg-green-300 text-black">
                         <Link href={`/owners/dashboard/applications/${application.id}/approve`}>
                           Approve
                         </Link>
                       </Button>
-                      <Button asChild variant="outline" size="sm" className="bg-red-50 hover:bg-red-100">
+                      <Button asChild variant="outline" size="sm" className="bg-red-200 hover:bg-red-300 text-black">
                         <Link href={`/owners/dashboard/applications/${application.id}/reject`}>
                           Reject
                         </Link>

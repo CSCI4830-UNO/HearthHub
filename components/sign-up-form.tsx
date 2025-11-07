@@ -52,6 +52,12 @@ export function SignUpForm({
         },
       });
       if (error) throw error;
+      //todo: await api call to add user
+      const response = await fetch('/api/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'John Doe' }),
+      });
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
