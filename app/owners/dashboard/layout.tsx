@@ -7,7 +7,6 @@ import {
   Users, 
   FileText, 
   MessageSquare, 
-  BarChart3, 
   DollarSign,
   Settings,
   Home as HomeIcon,
@@ -23,7 +22,6 @@ const navigation = [
   { name: "Applications", href: "/owners/dashboard/applications", icon: FileText },
   { name: "Payments", href: "/owners/dashboard/payments", icon: DollarSign },
   { name: "Messages", href: "/owners/dashboard/messages", icon: MessageSquare },
-  { name: "Analytics", href: "/owners/dashboard/analytics", icon: BarChart3 },
   { name: "Settings", href: "/owners/dashboard/settings", icon: Settings },
 ];
 
