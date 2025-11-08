@@ -7,13 +7,14 @@ import { hasEnvVars } from "@/lib/utils";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { createClient } from "@/lib/supabase/server";
 
+{/* This is the main landing page, when the user opens the program this is where they land */}
 export default async function OwnersPage() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
   return (
     <main className="min-h-screen flex flex-col">
-      {/* Navigation */}
+      {/* Top Navigation Bar, allows personalization of view for Renters and Owners */}
       <nav className="w-full border-b border-foreground/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="w-full max-w-7xl mx-auto flex items-center p-4 px-6">
           <Link href={"/"} className="flex items-center gap-2 font-bold text-xl flex-1">
@@ -30,7 +31,7 @@ export default async function OwnersPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section, provides for padding & layout for the page */}
       <section className="w-full py-16 px-4 bg-gradient-to-b from-primary/5 to-background">
         <div className="max-w-5xl mx-auto text-center space-y-6">
           <h1 className="text-4xl lg:text-5xl font-bold">Manage Your Rental Portfolio</h1>
@@ -68,7 +69,8 @@ export default async function OwnersPage() {
               Everything you need to manage your rental properties efficiently and grow your business.
             </p>
           </div>
-          
+
+          {/* Creates grid layout for Owners view */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader>

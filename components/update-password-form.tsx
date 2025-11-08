@@ -32,7 +32,7 @@ export function UpdatePasswordForm({
     setIsLoading(true);
     setError(null);
 
-    // Validate passwords match
+    {/* !== is used instead of != to avoid type coercion for making sure passwords match*/}
     if (newPassword !== confirmPassword) {
       setError("New passwords do not match");
       setIsLoading(false);

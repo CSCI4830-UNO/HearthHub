@@ -35,6 +35,7 @@ export function SignUpForm({
     setIsLoading(true);
     setError(null);
 
+    {/* !== is used instead of != to avoid type coercion for making sure passwords match*/}
     if (password !== repeatPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -75,6 +76,7 @@ export function SignUpForm({
                 <Input
                   id="firstname"
                   type="firstname"
+                  placeholder="John"
                   required
                   value={firstname}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -85,6 +87,7 @@ export function SignUpForm({
                 <Input
                   id="lastname"
                   type="lastname"
+                  placeholder="Doe"
                   required
                   value={lastname}
                   onChange={(e) => setLastName(e.target.value)}
@@ -95,7 +98,7 @@ export function SignUpForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="John.Doe@email.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

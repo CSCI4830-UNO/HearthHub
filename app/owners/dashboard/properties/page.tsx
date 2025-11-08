@@ -8,36 +8,39 @@ import Link from "next/link";
 const properties = [
   {
     id: 1,
-    name: "Sunset Apartments - Unit 101",
-    address: "123 Main Street, San Francisco, CA 94102",
+    name: "Dundee Flats",
+    address: "4835 Dodge St, Omaha, NE 68132",
     type: "Apartment",
-    bedrooms: 2,
+    bedrooms: 1,
     bathrooms: 1,
-    rent: 2500,
+    sqft: 785,
+    rent: 1000,
     status: "occupied",
     tenant: "John Doe",
     image: null,
   },
   {
     id: 2,
-    name: "Downtown Loft",
-    address: "456 Market St, San Francisco, CA 94103",
-    type: "Loft",
-    bedrooms: 1,
-    bathrooms: 1,
-    rent: 3200,
+    name: "Juniper Rows",
+    address: "12070 Kimball Plz, Omaha, NE 68142",
+    type: "Suite",
+    bedrooms: 3,
+    bathrooms: 2,
+    sqft: 1200,
+    rent: 2300,
     status: "occupied",
     tenant: "Jane Smith",
     image: null,
   },
   {
     id: 3,
-    name: "Garden View Suite",
-    address: "789 Oak Avenue, San Francisco, CA 94104",
-    type: "Suite",
-    bedrooms: 3,
-    bathrooms: 2,
-    rent: 4500,
+    name: "The Duo",
+    address: "222 S 15th St, Omaha, NE 68102",
+    type: "Flat",
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 570,
+    rent: 1020,
     status: "vacant",
     tenant: null,
     image: null,
@@ -149,6 +152,10 @@ export default function PropertiesPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Bathrooms:</span>
                   <span className="font-medium">{property.bathrooms}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Sqft::</span>
+                  <span className="font-medium">{property.sqft}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Monthly Rent:</span>

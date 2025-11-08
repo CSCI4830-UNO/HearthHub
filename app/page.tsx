@@ -52,7 +52,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* For Renters Section */}
+      {/* Creates grid layout for Renters view */}
       <section className="w-full py-16 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -242,6 +242,7 @@ export default async function Home() {
             <HomeIcon className="h-5 w-5 text-primary" />
             <span className="font-semibold">HeartHub</span>
           </div>
+          {/* This is a nice touch! */}
           <p className="text-sm text-muted-foreground text-center">
             © {new Date().getFullYear()} HeartHub. All rights reserved.
           </p>
