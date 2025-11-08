@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         const { data: newUser, error: insertError } = await supabase
             .from('user')
             .insert({
-                email: body.email as Text
+                email: body.email
             });
             
 

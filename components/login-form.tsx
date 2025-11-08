@@ -38,17 +38,17 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
+      //todo: api call to add user
+      await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: data.user.id,
+          email: data.user.email
+        }),
+      });
       router.push("/");
       router.refresh();
-      //todo: api call to add user
-      fetch('/api/user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: data.user.id,
-        email: data.user.email
-      }),
-      });
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
