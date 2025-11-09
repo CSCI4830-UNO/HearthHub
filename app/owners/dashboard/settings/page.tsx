@@ -43,7 +43,7 @@ export default function SettingsPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" placeholder="(555) 123-4567" />
+            <Input id="phone" type="tel" placeholder="(402) 123-4567" />
           </div>
           <Button>Save Changes</Button>
         </CardContent>

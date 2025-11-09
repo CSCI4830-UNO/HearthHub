@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 const conversations = [
   {
     id: 1,
-    property: "Sunset Apartments - Unit 101",
+    property: "Dundee Flats",
     landlord: "John Smith",
     landlordEmail: "john.smith@example.com",
     lastMessage: "Thank you for your application! We'll review it and get back to you within 2-3 business days.",
@@ -16,7 +16,7 @@ const conversations = [
   },
   {
     id: 2,
-    property: "Garden View Suite",
+    property: "The Duo",
     landlord: "Sarah Johnson",
     landlordEmail: "sarah.johnson@example.com",
     lastMessage: "Great news! Your application has been approved. When would you like to schedule a tour?",
@@ -25,7 +25,7 @@ const conversations = [
   },
   {
     id: 3,
-    property: "Downtown Loft",
+    property: "The Duke Omaha Apartments",
     landlord: "Mike Davis",
     landlordEmail: "mike.davis@example.com",
     lastMessage: "I have a few questions about your application. Can we schedule a call?",

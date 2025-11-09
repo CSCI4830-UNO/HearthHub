@@ -12,9 +12,9 @@ const initialProfileData = {
   firstName: "John",
   lastName: "Doe",
   email: "john.doe@example.com",
-  phone: "(555) 123-4567",
-  dateOfBirth: "1990-01-15",
-  address: "123 Main St, San Francisco, CA 94102",
+  phone: "(402) 123-4567",
+  dateOfBirth: "05-17-89",
+  address: "1110 S 67th St, Omaha, NE 68182",
   employment: {
     company: "Tech Corp",
     position: "Software Engineer",
@@ -24,7 +24,7 @@ const initialProfileData = {
     {
       name: "Jane Smith",
       relationship: "Previous Landlord",
-      phone: "(555) 987-6543",
+      phone: "(402) 867-5309",
     },
   ],
 };

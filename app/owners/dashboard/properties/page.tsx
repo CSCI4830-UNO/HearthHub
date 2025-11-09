@@ -154,7 +154,7 @@ export default function PropertiesPage() {
                   <span className="font-medium">{property.bathrooms}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Sqft::</span>
+                  <span className="text-muted-foreground">Sqft:</span>
                   <span className="font-medium">{property.sqft}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">

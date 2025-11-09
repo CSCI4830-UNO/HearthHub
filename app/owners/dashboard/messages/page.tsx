@@ -8,7 +8,7 @@ const conversations = [
   {
     id: 1,
     tenant: "John Doe",
-    property: "Sunset Apartments - Unit 101",
+    property: "The Duke Omaha Apartments",
     lastMessage: "The heating system seems to be making a strange noise. Can someone take a look?",
     lastMessageTime: "2 hours ago",
     unread: 2,
@@ -17,7 +17,7 @@ const conversations = [
   {
     id: 2,
     tenant: "Jane Smith",
-    property: "Downtown Loft",
+    property: "Juniper Rows",
     lastMessage: "Thank you for fixing the leak! Everything looks great now.",
     lastMessageTime: "1 day ago",
     unread: 0,
@@ -26,7 +26,7 @@ const conversations = [
   {
     id: 3,
     tenant: "Mike Johnson",
-    property: "Riverside Condo - Unit 205",
+    property: "Dundee Flats",
     lastMessage: "I'm planning to renew my lease. Can we discuss the terms?",
     lastMessageTime: "3 days ago",
     unread: 1,
