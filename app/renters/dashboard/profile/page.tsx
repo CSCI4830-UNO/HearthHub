@@ -1,11 +1,14 @@
+"use client";
+
 import { User, Mail, Phone, MapPin, Calendar, FileText, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
-const profileData = {
+const initialProfileData = {
   firstName: "John",
   lastName: "Doe",
   email: "john.doe@example.com",
@@ -27,6 +30,7 @@ const profileData = {
 };
 
 export default function ProfilePage() {
+  const [profileData, setProfileData] = useState(initialProfileData);
   return (
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
@@ -50,28 +54,55 @@ export default function ProfilePage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" value={profileData.firstName} />
+              <Input 
+                id="firstName" 
+                value={profileData.firstName}
+                onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" value={profileData.lastName} />
+              <Input 
+                id="lastName" 
+                value={profileData.lastName}
+                onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={profileData.email} />
+            <Input 
+              id="email" 
+              type="email" 
+              value={profileData.email}
+              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" value={profileData.phone} />
+            <Input 
+              id="phone" 
+              type="tel" 
+              value={profileData.phone}
+              onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="dateOfBirth">Date of Birth</Label>
-            <Input id="dateOfBirth" type="date" value={profileData.dateOfBirth} />
+            <Input 
+              id="dateOfBirth" 
+              type="date" 
+              value={profileData.dateOfBirth}
+              onChange={(e) => setProfileData({ ...profileData, dateOfBirth: e.target.value })}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Current Address</Label>
-            <Input id="address" value={profileData.address} />
+            <Input 
+              id="address" 
+              value={profileData.address}
+              onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+            />
           </div>
           <Button>Save Changes</Button>
         </CardContent>
@@ -90,16 +121,38 @@ export default function ProfilePage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="company">Company</Label>
-              <Input id="company" value={profileData.employment.company} />
+              <Input 
+                id="company" 
+                value={profileData.employment.company}
+                onChange={(e) => setProfileData({ 
+                  ...profileData, 
+                  employment: { ...profileData.employment, company: e.target.value }
+                })}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="position">Position</Label>
-              <Input id="position" value={profileData.employment.position} />
+              <Input 
+                id="position" 
+                value={profileData.employment.position}
+                onChange={(e) => setProfileData({ 
+                  ...profileData, 
+                  employment: { ...profileData.employment, position: e.target.value }
+                })}
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="income">Annual Income ($)</Label>
-            <Input id="income" type="number" value={profileData.employment.income} />
+            <Input 
+              id="income" 
+              type="number" 
+              value={profileData.employment.income}
+              onChange={(e) => setProfileData({ 
+                ...profileData, 
+                employment: { ...profileData.employment, income: parseFloat(e.target.value) || 0 }
+              })}
+            />
           </div>
           <Button>Save Changes</Button>
         </CardContent>

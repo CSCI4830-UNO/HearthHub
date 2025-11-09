@@ -4,7 +4,6 @@ import { Home as HomeIcon } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { hasEnvVars } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export default function Page() {
   return (
@@ -14,7 +13,7 @@ export default function Page() {
         <div className="w-full max-w-7xl mx-auto flex items-center p-4 px-6">
           <Link href={"/"} className="flex items-center gap-2 font-bold text-xl flex-1">
             <HomeIcon className="h-6 w-6 text-primary" />
-            HeartHub
+            Hearth Hub
           </Link>
           <div className="flex items-center gap-4 justify-center flex-1">
             <Link href="/renters" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>
@@ -24,7 +23,7 @@ export default function Page() {
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
         </div>
-      </nav>
+        </nav>
 
       {/* Login Form */}
       <div className="flex flex-1 w-full items-center justify-center p-6 md:p-10">
