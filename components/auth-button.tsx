@@ -11,19 +11,44 @@ export async function AuthButton() {
 
   const user = data?.claims;
 
-  return user ? (
+  if (!user) {
+    return (
+      <div className="flex gap-2">
+        <Button asChild size="sm" variant={"outline"}>
+          <Link href="/auth/login">Sign in</Link>
+        </Button>
+        <Button asChild size="sm" variant={"default"}>
+          <Link href="/auth/sign-up">Sign up</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  // Fetch user data from database to check for name
+  const { data: userData } = await supabase
+    .from('user')
+    .select('first_name, name, full_name')
+    .eq('email', user.email)
+    .maybeSingle();
+
+  // Determine display name: prefer first name only, fall back to email
+  let displayName = user.email;
+  if (userData) {
+    if (userData.first_name) {
+      displayName = userData.first_name;
+    } else if (userData.name) {
+      // Extract first name from name field (split by space and take first part)
+      displayName = userData.name.split(' ')[0];
+    } else if (userData.full_name) {
+      // Extract first name from full_name field (split by space and take first part)
+      displayName = userData.full_name.split(' ')[0];
+    }
+  }
+
+  return (
     <div className="flex items-center gap-4">
-      <span className="text-sm">Hey, {user.email}!</span>
+      <span className="text-sm">Hey, {displayName}!</span>
       <LogoutButton />
-    </div>
-  ) : (
-    <div className="flex gap-2">
-      <Button asChild size="sm" variant={"outline"}>
-        <Link href="/auth/login">Sign in</Link>
-      </Button>
-      <Button asChild size="sm" variant={"default"}>
-        <Link href="/auth/sign-up">Sign up</Link>
-      </Button>
     </div>
   );
 }
