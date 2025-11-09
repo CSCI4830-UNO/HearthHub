@@ -48,7 +48,7 @@ export default async function RenterDashboardLayout({
           <div className="flex items-center flex-shrink-0 px-6 mb-8">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl">
               <HomeIcon className="h-6 w-6 text-primary" />
-              HeartHub
+              Hearth Hub
             </Link>
           </div>
 
@@ -98,7 +98,7 @@ export default async function RenterDashboardLayout({
             <div className="flex items-center md:hidden">
               <Link href="/" className="flex items-center gap-2 font-bold text-xl">
                 <HomeIcon className="h-6 w-6 text-primary" />
-                HeartHub
+                Hearth Hub
               </Link>
             </div>
             <div className="flex items-center gap-4">

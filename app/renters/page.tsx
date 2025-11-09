@@ -18,7 +18,7 @@ export default async function RentersPage() {
         <div className="w-full max-w-7xl mx-auto flex items-center p-4 px-6">
           <Link href={"/"} className="flex items-center gap-2 font-bold text-xl flex-1">
             <HomeIcon className="h-6 w-6 text-primary" />
-            HeartHub
+            Hearth Hub
           </Link>
           <div className="flex items-center gap-4 justify-center flex-1">
             <Link href="/renters" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>

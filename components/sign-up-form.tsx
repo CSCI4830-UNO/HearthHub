@@ -20,8 +20,8 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [firstname, setFirstName] = useState("");
-  const [lastname, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -44,8 +44,8 @@ export function SignUpForm({
 
     try {
       const { error } = await supabase.auth.signUp({
-        firstname,
-        lastname,
+        firstName,
+        lastName,
         email,
         password,
         options: {
@@ -72,24 +72,24 @@ export function SignUpForm({
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">First Name</Label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  id="firstname"
-                  type="firstname"
+                  id="firstName"
+                  type="firstName"
                   placeholder="John"
                   required
-                  value={firstname}
+                  value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Last Name</Label>
+                <Label htmlFor="lastName">Last Name</Label>
                 <Input
-                  id="lastname"
-                  type="lastname"
+                  id="lastName"
+                  type="lastName"
                   placeholder="Doe"
                   required
-                  value={lastname}
+                  value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                 />
               </div>

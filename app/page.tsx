@@ -33,7 +33,7 @@ export default async function Home() {
         <div className="w-full max-w-7xl mx-auto flex items-center p-4 px-6">
           <Link href={"/"} className="flex items-center gap-2 font-bold text-xl flex-1">
             <HomeIcon className="h-6 w-6 text-primary" />
-            HeartHub
+            Hearth Hub
           </Link>
           <div className="flex items-center gap-4 justify-center flex-1">
             <Link href="/renters" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>
@@ -220,7 +220,7 @@ export default async function Home() {
             <>
               <h2 className="text-3xl lg:text-4xl font-bold">Ready to Get Started?</h2>
               <p className="text-lg text-primary-foreground/90">
-                Join thousands of renters and property owners already using HeartHub
+                Join thousands of renters and property owners already using Hearth Hub
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button asChild size="lg" variant="secondary" className="text-lg px-8">
@@ -240,11 +240,11 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <HomeIcon className="h-5 w-5 text-primary" />
-            <span className="font-semibold">HeartHub</span>
+            <span className="font-semibold">Hearth Hub</span>
           </div>
           {/* This is a nice touch! */}
           <p className="text-sm text-muted-foreground text-center">
-            © {new Date().getFullYear()} HeartHub. All rights reserved.
+            © {new Date().getFullYear()} Hearth Hub. All rights reserved.
           </p>
           <ThemeSwitcher />
         </div>
