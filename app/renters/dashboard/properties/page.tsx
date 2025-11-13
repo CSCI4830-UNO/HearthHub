@@ -1,10 +1,12 @@
+"use client"
 import { Search, Heart, MapPin, DollarSign, Bed, Bath, Building2, Filter, SlidersHorizontal } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-const properties = [
+export const startingProperties = [
   {
     id: 1,
     name: "Dundee Flats",
@@ -33,7 +35,7 @@ const properties = [
     availableDate: "2025-11-15",
     image: null,
     amenities: ["Parking", "Furnished", "Gym", "Elevator"],
-    saved: true,
+    saved: false,
   },
   {
     id: 3,
@@ -48,7 +50,7 @@ const properties = [
     availableDate: "2025-12-15",
     image: null,
     amenities: ["Parking", "Laundry", "Balcony", "Pool"],
-    saved: true,
+    saved: false,
   },
   {
     id: 4,
@@ -68,6 +70,27 @@ const properties = [
 ];
 
 export default function BrowsePropertiesPage() {
+    {/* Code that controls the toggle Heart buttons  in Lines 183-188 of this page */}
+    const [properties, setProperties] = useState(startingProperties);
+    const toggleSaved = (id) => {setProperties((prev) => {const updated = prev.map((property) => property.id === id ? { ...property, saved: !property.saved } : property);
+
+    {/* Code that saves Favorites to localStorage */}
+      const favorites = updated.filter((p) => p.saved).map((p) => p.id);
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+      return updated;
+    });
+  };
+
+    useEffect(() => {
+      const stored = JSON.parse(localStorage.getItem("favorites")) || [];
+      setProperties((prev) =>
+        prev.map((p) => ({
+          ...p,
+          saved: stored.includes(p.id),
+        }))
+      );
+    }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -157,8 +180,12 @@ export default function BrowsePropertiesPage() {
                     {property.address}
                   </CardDescription>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Heart className={`h-4 w-4 ${property.saved ? 'fill-red-500 text-red-500' : ''}`} />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => toggleSaved(property.id)}>
+                  <Heart className={`h-4 w-4 ${property.saved ? "fill-red-500 text-red-500" : ""}`}/>
                 </Button>
               </div>
             </CardHeader>
