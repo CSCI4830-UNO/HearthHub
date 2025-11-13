@@ -8,6 +8,7 @@ import {
   FileText, 
   MessageSquare, 
   User,
+  DollarSign,
   Settings,
   Home as HomeIcon,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const navigation = [
   { name: "Saved Properties", href: "/renters/dashboard/saved", icon: Heart },
   { name: "My Applications", href: "/renters/dashboard/applications", icon: FileText },
   { name: "Messages", href: "/renters/dashboard/messages", icon: MessageSquare },
+  { name: "Rent Payments", href: "/renters/dashboard/payments", icon: DollarSign },
   { name: "Profile", href: "/renters/dashboard/profile", icon: User },
   { name: "Settings", href: "/renters/dashboard/settings", icon: Settings },
 ];

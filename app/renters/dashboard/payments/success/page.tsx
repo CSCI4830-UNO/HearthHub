@@ -1,6 +1,9 @@
-import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Card,CardContent, CardHeader,CardTitle,} from "@/components/ui/card";
 import { Home as HomeIcon} from "lucide-react";
 import Link from "next/link";
+import { hasEnvVars } from "@/lib/utils";
+import { EnvVarWarning } from "@/components/env-var-warning";
+import { AuthButton } from "@/components/auth-button";
 
 export default function Page() {
   return (
@@ -15,6 +18,9 @@ export default function Page() {
             <Link href="/renters" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>
             <Link href="/owners" className="font-bold text-muted-foreground hover:text-foreground">For Owners</Link>
           </div>
+          <div className="flex items-center gap-4 justify-end flex-1">
+            {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
+          </div>
         </div>
       </nav>
       
@@ -23,14 +29,13 @@ export default function Page() {
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">
-                Thank you for signing up!
+                Thank you for your payment!
               </CardTitle>
-              <CardDescription>Check your email to confirm</CardDescription>
             </CardHeader>
+
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                You&apos;ve successfully signed up. Please check your email to
-                confirm your account before signing in.
+                You&apos;ve successfully made a payment.
               </p>
             </CardContent>
           </Card>
