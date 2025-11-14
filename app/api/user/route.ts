@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
         const { data: existingUser, error: searchError } = await supabase
             .from('user')
             .select('*')
-            .eq('email', body.email)
+            .eq('id', body.id)
             .maybeSingle();
 
         console.log('Search result:', { existingUser, searchError });
@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
         const { data: newUser, error: insertError } = await supabase
             .from('user')
             .insert({
-                email: body.email
+                email: body.email,
+                first_name: body.firstName,
+                last_name: body.lastName,
             });
             
 

@@ -44,8 +44,6 @@ export function SignUpForm({
 
     try {
       const { error } = await supabase.auth.signUp({
-        firstName,
-        lastName,
         email,
         password,
         options: {
