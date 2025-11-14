@@ -70,9 +70,9 @@ export async function POST(request: NextRequest) {
     const { data: updatedUser, error: updateError } = await supabase
       .from('user')
       .update({
-        first_name: body.first_name,
-        last_name: body.last_name,
-        phone_number: body.phone_number,
+        first_name: body.firstName,
+        last_name: body.lastName,
+        phone_number: body.phone,
         email: body.email
       })
       .eq('id', authUser.id)
