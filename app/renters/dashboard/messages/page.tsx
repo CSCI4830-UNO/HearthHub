@@ -1,5 +1,7 @@
+"use client"
 import { MessageSquare, Send, Search, User, Building2, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +37,17 @@ const conversations = [
 ];
 
 export default function MessagesPage() {
+    // Code to run the pop-up message window
+    const [selectedConversation, setSelectedConversation] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    //Code for the search bar
+    const [searchTerm, setSearchTerm] = useState("");
+    const filteredConversations = conversations.filter((c) =>
+      c.landlord.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.property.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread, 0);
 
   return (
@@ -82,7 +95,8 @@ export default function MessagesPage() {
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search conversations..." className="pl-10" />
+            <Input placeholder="Search conversations..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -123,11 +137,16 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="flex-shrink-0">
-                  <Button asChild variant="outline" size="sm">
-                    <a href={`/renters/dashboard/messages/${conversation.id}`}>
-                      View
-                    </a>
-                  </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-20 px-6"
+                        onClick={() => {
+                        setSelectedConversation(conversation);
+                        setShowModal(true);
+                        }}>
+                        View
+                    </Button>
                 </div>
               </div>
             </CardContent>
@@ -135,7 +154,7 @@ export default function MessagesPage() {
         ))}
       </div>
 
-      {conversations.length === 0 && (
+      {filteredConversations.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
@@ -146,6 +165,30 @@ export default function MessagesPage() {
           </CardContent>
         </Card>
       )}
+
+  {showModal && selectedConversation && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">
+            Conversation with {selectedConversation.landlord}
+          </h2>
+          <Button variant="ghost" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
+        </div>
+        <div className="space-y-4">
+          <p><strong>Property:</strong> {selectedConversation.property}</p>
+          <p><strong>Email:</strong> {selectedConversation.landlordEmail}</p>
+          <p><strong>Message:</strong> {selectedConversation.lastMessage}</p>
+          <p className="text-sm text-muted-foreground">
+            Sent {selectedConversation.lastMessageTime}
+          </p>
+        </div>
+      </div>
+    </div>
+  )}
+
     </div>
   );
 }
