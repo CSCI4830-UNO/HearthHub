@@ -1,4 +1,6 @@
-import { Settings, User, Bell, Shield, CreditCard, Building2 } from "lucide-react";
+"use client"
+import { useEffect, useState } from "react"
+import { User, Bell, Shield, CreditCard, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +8,49 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 
+{/* Code to pull data from Database endpoint */}
 export default function SettingsPage() {
+{/* Match up the variables to the ones the relevant database uses, order does not matter*/}
+  const [userData, setUserData] = useState({
+    email: "",
+    first_name: "",
+    last_name: "",
+    phone_number: ""
+  });
+    {/* The fetch links to whatever folder the GET */}
+    {/* You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot */}
+    useEffect(() => {
+    fetch("http://localhost:3000/api/owner/settings", {credentials: "include"})
+        .then(response => response.json())
+        .then(response => {console.log("You are pulling this data:", response);
+        setUserData(response);
+        })
+        .catch(error => console.error(error));
+        }, []);
+
+const handleSave = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/owner/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(userData)
+      });
+
+      const result = await response.json();
+      console.log("Here's what was posted to the db:", result);
+
+      if (response.ok) {
+        alert("Changes updated!");
+      } else {
+        alert("Failed to update: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error updating:", error);
+      alert("Unexpected error occurred.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -29,27 +73,53 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" placeholder="John" />
+              <Label htmlFor="first_name">First Name</Label>
+              {/* Accepts the GET data from the .ts file PAY ATTENTION TO SNAKE CASE! */}
+              <Input id="first_name"
+              placeholder="John"
+              value={userData.first_name}
+              onChange={e => setUserData({ ...userData, first_name: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" placeholder="Doe" />
+              {/* Accepts the GET data from the .ts file PAY ATTENTION TO SNAKE CASE! */}
+              <Label htmlFor="last_name">Last Name</Label>
+              <Input id="last_name"
+              placeholder="Doe"
+              value={userData.last_name}
+              onChange={e => setUserData({ ...userData, last_name: e.target.value })}/>
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="john.doe@example.com" />
+            {/* Accepts the GET data from the .ts file PAY ATTENTION TO SNAKE CASE! */}
+            <Input id="email"
+            type="email"
+            placeholder="john.doe@example.com"
+            value={userData.email}
+            onChange={e => setUserData({ ...userData, email: e.target.value })}
+             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" placeholder="(402) 123-4567" />
+            <Label htmlFor="phone_number">Phone Number</Label>
+            {/* Accepts the GET data from the .ts file PAY ATTENTION TO SNAKE CASE! */}
+            <Input id="phone_number"
+            type="tel"
+            placeholder="(402) 123-4567"
+            value={userData.phone_number}
+            onChange={e => setUserData({ ...userData, phone_number: e.target.value })}
+             />
           </div>
-          <Button>Save Changes</Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+{/* DELETE THAT </div> ); } above you BEFORE CONTINUING!!! */}
+{/*
 
-      {/* Notification Settings */}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -99,7 +169,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Payment Settings */}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -136,7 +206,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Security Settings */}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -165,7 +235,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Account Actions */}
+
       <Card className="border-destructive">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -184,4 +254,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+*/}
 

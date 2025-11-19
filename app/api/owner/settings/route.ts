@@ -70,14 +70,19 @@ export async function POST(request: NextRequest) {
     const { data: updatedUser, error: updateError } = await supabase
       .from('user')
       .update({
-        first_name: body.firstName,
-        last_name: body.lastName,
-        phone_number: body.phone,
+        first_name: body.first_name,
+        last_name: body.last_name,
+        phone_number: body.phone_number,
         email: body.email
       })
       .eq('id', authUser.id)
-      .select()
-      .single();
+      .select();
+
+    // This code is not needed but it helps you troubleshoot what is being posted to the DB
+    console.log("Here is the update sent via POST:", body);
+    console.log("authUser.id:", authUser.id);
+    console.log("updatedUser:", updatedUser);
+    console.log("updateError:", updateError);
 
     if (updateError) {
       console.error('Error updating user:', updateError);
