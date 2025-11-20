@@ -1,5 +1,5 @@
 "use client"
-import { MessageSquare, Send, Search, User, Building2, Calendar } from "lucide-react";
+import { MessageSquare, Send, Search, User, Building2, Calendar, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -60,9 +60,15 @@ export default function MessagesPage() {
             Communicate with property owners and landlords
           </p>
         </div>
-        {totalUnread > 0 && (
-          <Badge variant="default">{totalUnread} unread</Badge>
-        )}
+        <div className="flex items-center gap-3">
+          {totalUnread > 0 && (
+            <Badge variant="default">{totalUnread} unread</Badge>
+          )}
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New Message
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -106,13 +112,14 @@ export default function MessagesPage() {
         {conversations.map((conversation) => (
           <Card key={conversation.id} className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6">
+              {/* Top row: avatar + message preview */}
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-6 w-6 text-primary" />
                   </div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -125,36 +132,40 @@ export default function MessagesPage() {
                       {conversation.lastMessageTime}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 mb-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <p className="text-sm font-medium">{conversation.property}</p>
                   </div>
-                  
+
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {conversation.lastMessage}
                   </p>
                 </div>
-
-                <div className="flex-shrink-0">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-20 px-6"
-                        onClick={() => {
-                        setSelectedConversation(conversation);
-                        setShowModal(true);
-                        }}>
-                        View
-                    </Button>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
-      {filteredConversations.length === 0 && (
+              {/* ✅ Footer row for buttons */}
+              <div className="flex gap-2 mt-4 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedConversation(conversation);
+                    setShowModal(true);
+                  }}
+                >
+                  View Conversation
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+      </CardContent>
+    </Card>
+  ))}
+</div>
+    {filteredConversations.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
@@ -167,20 +178,20 @@ export default function MessagesPage() {
       )}
 
   {showModal && selectedConversation && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold text-foreground">
             Conversation with {selectedConversation.landlord}
           </h2>
           <Button variant="ghost" onClick={() => setShowModal(false)}>
             Close
           </Button>
         </div>
-        <div className="space-y-4">
-          <p><strong>Property:</strong> {selectedConversation.property}</p>
-          <p><strong>Email:</strong> {selectedConversation.landlordEmail}</p>
-          <p><strong>Message:</strong> {selectedConversation.lastMessage}</p>
+        <div className="space-y-4 text-foreground">
+          <p><strong className="font-semibold">Property:</strong> {selectedConversation.property}</p>
+          <p><strong className="font-semibold">Email:</strong> {selectedConversation.landlordEmail}</p>
+          <p><strong className="font-semibold">Message:</strong> {selectedConversation.lastMessage}</p>
           <p className="text-sm text-muted-foreground">
             Sent {selectedConversation.lastMessageTime}
           </p>
@@ -188,8 +199,6 @@ export default function MessagesPage() {
       </div>
     </div>
   )}
-
-    </div>
+</div>
   );
 }
-

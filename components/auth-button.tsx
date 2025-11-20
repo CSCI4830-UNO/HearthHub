@@ -27,8 +27,8 @@ export async function AuthButton() {
   // Fetch user data from database to check for name
   const { data: userData } = await supabase
     .from('user')
-    .select('first_name, name, full_name')
-    .eq('email', user.email)
+    .select('first_name, last_name')
+    .eq('id', user.sub)
     .maybeSingle();
 
   // Determine display name: prefer first name only, fall back to email
@@ -36,13 +36,11 @@ export async function AuthButton() {
   if (userData) {
     if (userData.first_name) {
       displayName = userData.first_name;
-    } else if (userData.name) {
+    } else if (userData.last_name) {
       // Extract first name from name field (split by space and take first part)
-      displayName = userData.name.split(' ')[0];
-    } else if (userData.full_name) {
-      // Extract first name from full_name field (split by space and take first part)
-      displayName = userData.full_name.split(' ')[0];
+      displayName = userData.last_name;
     }
+
   }
 
   return (
