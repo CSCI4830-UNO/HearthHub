@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     // Update user data
     const { data: updatedUser, error: updateError } = await supabase
       .from('user')
-      .update({
+      .upsert({
         first_name: body.first_name,
         last_name: body.last_name,
         phone_number: body.phone_number,
