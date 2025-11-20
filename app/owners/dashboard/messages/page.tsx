@@ -1,3 +1,5 @@
+"use client"
+import { useState } from "react";
 import { MessageSquare, Send, Search, AlertCircle, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,8 @@ const conversations = [
 export default function MessagesPage() {
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread, 0);
   const maintenanceRequests = conversations.filter(c => c.type === "maintenance").length;
+
+const [selectedConversation, setSelectedConversation] = useState(null);
 
   return (
     <div className="space-y-6">
@@ -135,10 +139,12 @@ export default function MessagesPage() {
               </div>
 
               <div className="flex gap-2 mt-4 pt-4 border-t">
-                <Button asChild variant="outline" size="sm" className="flex-1">
-                  <a href={`/owners/dashboard/messages/${conversation.id}`}>
-                    View Conversation
-                  </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setSelectedConversation(conversation)}>
+                  View Conversation
                 </Button>
                 <Button variant="outline" size="sm">
                   <Send className="h-4 w-4" />
@@ -159,8 +165,31 @@ export default function MessagesPage() {
             </p>
           </CardContent>
         </Card>
+        )}
+
+    {selectedConversation && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">
+              Conversation with {selectedConversation.tenant}
+            </h2>
+            <Button variant="ghost" onClick={() => setSelectedConversation(null)}>
+              Close
+            </Button>
+          </div>
+          <div className="space-y-4">
+            <p><strong>Property:</strong> {selectedConversation.property}</p>
+            <p><strong>Message:</strong> {selectedConversation.lastMessage}</p>
+            <p className="text-sm text-muted-foreground">
+              Sent {selectedConversation.lastMessageTime}
+            </p>
+            <Badge variant="outline">{selectedConversation.type}</Badge>
+          </div>
+        </div>
+      </div>
       )}
-    </div>
+  </div>
   );
 }
 

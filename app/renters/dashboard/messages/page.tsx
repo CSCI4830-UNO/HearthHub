@@ -106,13 +106,14 @@ export default function MessagesPage() {
         {conversations.map((conversation) => (
           <Card key={conversation.id} className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6">
+              {/* Top row: avatar + message preview */}
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-6 w-6 text-primary" />
                   </div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -125,36 +126,40 @@ export default function MessagesPage() {
                       {conversation.lastMessageTime}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 mb-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <p className="text-sm font-medium">{conversation.property}</p>
                   </div>
-                  
+
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {conversation.lastMessage}
                   </p>
                 </div>
-
-                <div className="flex-shrink-0">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-20 px-6"
-                        onClick={() => {
-                        setSelectedConversation(conversation);
-                        setShowModal(true);
-                        }}>
-                        View
-                    </Button>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
-      {filteredConversations.length === 0 && (
+              {/* ✅ Footer row for buttons */}
+              <div className="flex gap-2 mt-4 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedConversation(conversation);
+                    setShowModal(true);
+                  }}
+                >
+                  View Conversation
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+      </CardContent>
+    </Card>
+  ))}
+</div>
+    {filteredConversations.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
@@ -188,8 +193,6 @@ export default function MessagesPage() {
       </div>
     </div>
   )}
-
-    </div>
+</div>
   );
 }
-
