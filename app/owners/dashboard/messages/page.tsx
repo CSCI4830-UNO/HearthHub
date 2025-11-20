@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { MessageSquare, Send, Search, AlertCircle, User } from "lucide-react";
+import { MessageSquare, Send, Search, AlertCircle, User, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,10 +52,14 @@ const [selectedConversation, setSelectedConversation] = useState(null);
             Communicate with tenants and handle requests
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {totalUnread > 0 && (
             <Badge variant="default">{totalUnread} unread</Badge>
           )}
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New Message
+          </Button>
         </div>
       </div>
 
@@ -168,19 +172,19 @@ const [selectedConversation, setSelectedConversation] = useState(null);
         )}
 
     {selectedConversation && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-xl font-semibold text-foreground">
               Conversation with {selectedConversation.tenant}
             </h2>
             <Button variant="ghost" onClick={() => setSelectedConversation(null)}>
               Close
             </Button>
           </div>
-          <div className="space-y-4">
-            <p><strong>Property:</strong> {selectedConversation.property}</p>
-            <p><strong>Message:</strong> {selectedConversation.lastMessage}</p>
+          <div className="space-y-4 text-foreground">
+            <p><strong className="font-semibold">Property:</strong> {selectedConversation.property}</p>
+            <p><strong className="font-semibold">Message:</strong> {selectedConversation.lastMessage}</p>
             <p className="text-sm text-muted-foreground">
               Sent {selectedConversation.lastMessageTime}
             </p>
