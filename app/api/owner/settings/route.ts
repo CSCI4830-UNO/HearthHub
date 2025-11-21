@@ -105,3 +105,46 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+//delete user account
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+
+    // Get current authenticated user
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !authUser) {
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    // Delete user profile from database
+    const { error: deleteError } = await supabase
+      .from('user')
+      .delete()
+      .eq('id', authUser.id);
+
+    if (deleteError) {
+      console.error('Error deleting user:', deleteError);
+      return NextResponse.json(
+        { error: "Failed to delete user data" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "User deleted successfully" },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
