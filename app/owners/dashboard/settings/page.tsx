@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 
 {/* Code to pull data from Database endpoint */}
-export default function SettingsPage() {
+export default function OwnerSettingsPage() {
 {/* Match up the variables to the ones the relevant database uses, order does not matter*/}
   const [userData, setUserData] = useState({
     email: "",
@@ -113,13 +113,41 @@ const handleSave = async () => {
           <Button onClick={handleSave}>Save Changes</Button>
         </CardContent>
       </Card>
-    </div>
-  );
-}
-{/* DELETE THAT </div> ); } above you BEFORE CONTINUING!!! */}
-{/*
 
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Security
+                </CardTitle>
+                 <CardDescription>Manage your privacy and security settings</CardDescription>
+                </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Change Password</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Update your account password
+                  </p>
+                  <Button asChild>
+                    <Link href="/auth/update-password">Change Password</Link>
+                  </Button>
+                </div>
+      {/*
+                // We're trying to do 2FA and we don't have a working database yet.  WTF!?
+                // Can we please delete this idea?  Its neat, but we need to focus up!
+                <div className="space-y-2">
+                  <Label>Two-Factor Authentication</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Add an extra layer of security to your account
+                  </p>
+                  <Button variant="outline">Enable 2FA</Button>
+                </div>
+      */}
+              </CardContent>
+            </Card>
 
+      {/* This code doesn't do anything yet because the back end is not built in yet */}
+      {/*
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -168,8 +196,8 @@ const handleSave = async () => {
           <Button>Save Preferences</Button>
         </CardContent>
       </Card>
-
-
+*/}
+      {/* This code is for the Payment Tab. */}``
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -207,35 +235,6 @@ const handleSave = async () => {
       </Card>
 
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Security
-          </CardTitle>
-          <CardDescription>Manage your account security</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Change Password</Label>
-            <p className="text-sm text-muted-foreground">
-              Update your account password
-            </p>
-            <Button variant="outline" asChild>
-              <Link href="/auth/update-password">Change Password</Link>
-            </Button>
-          </div>
-          <div className="space-y-2">
-            <Label>Two-Factor Authentication</Label>
-            <p className="text-sm text-muted-foreground">
-              Add an extra layer of security to your account
-            </p>
-            <Button variant="outline">Enable 2FA</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-
       <Card className="border-destructive">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -254,5 +253,4 @@ const handleSave = async () => {
     </div>
   );
 }
-*/}
 
