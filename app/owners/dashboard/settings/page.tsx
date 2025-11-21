@@ -28,6 +28,7 @@ export default function OwnerSettingsPage() {
         .catch(error => console.error(error));
         }, []);
 
+{/* This is your POST code that updates the user database entries */}
 const handleSave = async () => {
     try {
       const response = await fetch("http://localhost:3000/api/owner/settings", {
@@ -38,16 +39,44 @@ const handleSave = async () => {
       });
 
       const result = await response.json();
+      {/* You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot */}
       console.log("Here's what was posted to the db:", result);
 
       if (response.ok) {
         alert("Changes updated!");
       } else {
         alert("Failed to update: " + result.error);
+        console.log("Update result:", result.error);
       }
     } catch (error) {
       console.error("Error updating:", error);
       alert("Unexpected error occurred.");
+      console.log("Update result:", error);
+    }
+  };
+
+
+  {/* This is your DELETE code that erases the user database entries */}
+  const handleDelete = async () => {
+    if (!confirm("Are you sure? This action cannot be undone.")) {
+      return;
+    }
+    try {
+      const response = await fetch("http://localhost:3000/api/owner/settings", { method: "DELETE", credentials: "include" });
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Your account has been deleted.");
+        {/* Takes user back to main website while they're being logged out in /owner/settings/route */}
+        window.location.href = "http://localhost:3000";
+      } else {
+        alert("Failed to delete account: " + result.error);
+        console.log("Delete result:", result.error);
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert("Unexpected error occurred.");
+      console.log("Delete result:", error);
     }
   };
 
@@ -114,27 +143,26 @@ const handleSave = async () => {
         </CardContent>
       </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Security
-                </CardTitle>
-                 <CardDescription>Manage your privacy and security settings</CardDescription>
-                </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Change Password</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Update your account password
-                  </p>
-                  <Button asChild>
-                    <Link href="/auth/update-password">Change Password</Link>
-                  </Button>
-                </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Security
+            </CardTitle>
+             <CardDescription>Manage your privacy and security settings</CardDescription>
+            </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Change Password</Label>
+              <p className="text-sm text-muted-foreground">
+                Update your account password
+              </p>
+              <Button asChild>
+                <Link href="/auth/update-password">Change Password</Link>
+              </Button>
+            </div>
       {/*
-                // We're trying to do 2FA and we don't have a working database yet.  WTF!?
-                // Can we please delete this idea?  Its neat, but we need to focus up!
+                // This idea can be implemented if we have the time to make it happen
                 <div className="space-y-2">
                   <Label>Two-Factor Authentication</Label>
                   <p className="text-sm text-muted-foreground">
@@ -146,7 +174,29 @@ const handleSave = async () => {
               </CardContent>
             </Card>
 
-      {/* This code doesn't do anything yet because the back end is not built in yet */}
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardDescription>Irreversible and destructive actions</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Delete Account</Label>
+            <p className="text-sm text-muted-foreground">
+              Permanently delete your account and all associated data
+            </p>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete Account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+
+      {/* This code doesn't do anything yet because the backend is not built in yet */}
       {/*
       <Card>
         <CardHeader>
@@ -197,60 +247,3 @@ const handleSave = async () => {
         </CardContent>
       </Card>
 */}
-      {/* This code is for the Payment Tab. */}``
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Payment Settings
-          </CardTitle>
-          <CardDescription>Manage payment methods and preferences</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Bank Account</Label>
-            <p className="text-sm text-muted-foreground">
-              Connected bank account for receiving rent payments
-            </p>
-            <Button variant="outline">Manage Bank Accounts</Button>
-          </div>
-          <div className="space-y-2">
-            <Label>Payment Preferences</Label>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="auto-pay" defaultChecked />
-                <Label htmlFor="auto-pay" className="cursor-pointer">
-                  Enable automatic rent collection
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="late-fees" />
-                <Label htmlFor="late-fees" className="cursor-pointer">
-                  Apply late fees automatically
-                </Label>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>Irreversible and destructive actions</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Delete Account</Label>
-            <p className="text-sm text-muted-foreground">
-              Permanently delete your account and all associated data
-            </p>
-            <Button variant="destructive">Delete Account</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
