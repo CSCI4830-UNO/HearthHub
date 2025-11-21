@@ -187,6 +187,12 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // This code is necessary to sign the user out to prevent stale cookies form leaving the user in site
+    await supabase.auth.admin.deleteUser(authUser.id)
+    await supabase.auth.signOut();
+    //console.log("authUser.id:", authUser.id);
+    //console.log("updatedUser:", deleteError);
+    
     return NextResponse.json(
       { message: "User deleted successfully" },
       { status: 200 }
