@@ -6,7 +6,6 @@ import { LogoutButton } from "./logout-button";
 export async function AuthButton() {
   const supabase = await createClient();
 
-  // You can also use getUser() which will be slower.
   const { data } = await supabase.auth.getClaims();
 
   const user = data?.claims;
@@ -31,16 +30,14 @@ export async function AuthButton() {
     .eq('id', user.sub)
     .maybeSingle();
 
-  // Determine display name: prefer first name only, fall back to email
+  // Determine display name: prefer first name only, fall back to last name and then email
   let displayName = user.email;
   if (userData) {
     if (userData.first_name) {
       displayName = userData.first_name;
     } else if (userData.last_name) {
-      // Extract first name from name field (split by space and take first part)
       displayName = userData.last_name;
     }
-
   }
 
   return (

@@ -103,7 +103,7 @@ export default async function RenterDashboardLayout({
                 Hearth Hub
               </Link>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 justify-end flex-1">
               <AuthButton />
             </div>
           </div>
