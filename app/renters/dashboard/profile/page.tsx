@@ -1,107 +1,113 @@
 "use client";
-
+import { useEffect, useState } from "react"
 import { User, Mail, Phone, MapPin, Calendar, FileText, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-
-const initialProfileData = {
-  firstName: "John",
-  lastName: "Doe",
-  email: "john.doe@example.com",
-  phone: "(402) 123-4567",
-  dateOfBirth: "05-17-89",
-  address: "1110 S 67th St, Omaha, NE 68182",
-  employment: {
-    company: "Tech Corp",
-    position: "Software Engineer",
-    income: 85000,
-  },
-  references: [
-    {
-      name: "Jane Smith",
-      relationship: "Previous Landlord",
-      phone: "(402) 867-5309",
-    },
-  ],
-};
 
 export default function ProfilePage() {
-  const [profileData, setProfileData] = useState(initialProfileData);
-  return (
-    <div className="space-y-6 max-w-4xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">My Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your personal information and rental profile
-        </p>
-      </div>
+  {/* Match up the variables to the ones the relevant database uses, order does not matter*/}
+const [userData, setUserData] = useState({
+  email: "",
+  first_name: "",
+  last_name: "",
+  phone_number: "",
+  date_of_birth: "",
+  address: "",
+  employment: { company: "", position: "", income: 0, } // employment is passing an an obj???
+  // , references: [] // This has to be an array
+});
+      {/* The fetch links to whatever folder the GET */}
+      {/* You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot */}
+      useEffect(() => {
+        fetch("http://localhost:3000/api/renter/profile", { credentials: "include" })
+          .then(response => response.json())
+          .then(response => {
+            console.log("You are pulling this data:", response);
+            console.log("GET /api/renter/profile returning:", { ...userData, ...tenantData });
+            setUserData(prev => ({
+              ...prev,
+              ...response,
+              employment: response.employment || { company: "", position: "", income: 0 }
+              //references: response.references || []
+            }));
+          })
+          .catch(error => console.error(error));
+      }, []);
 
-      {/* Personal Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Personal Information
-          </CardTitle>
-          <CardDescription>Your basic personal details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+   return (
+      <div className="space-y-6 max-w-4xl">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold">My Profile</h1>
+          <p className="text-muted-foreground">
+            Manage your personal information and rental profile
+          </p>
+        </div>
+
+        {/* Personal Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Personal Information
+            </CardTitle>
+            <CardDescription>Your basic personal details</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="first_name"
+                  value={userData.first_name}
+                  onChange={(e) => setUserData({ ...userData, first_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="last_name"
+                  value={userData.last_name}
+                  onChange={(e) => setUserData({ ...userData, last_name: e.target.value })}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input 
-                id="firstName" 
-                value={profileData.firstName}
-                onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={userData.email}
+                onChange={(e) => setUserData({ ...userData, email: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input 
-                id="lastName" 
-                value={profileData.lastName}
-                onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone_number"
+                type="tel"
+                value={userData.phone_number}
+                onChange={(e) => setUserData({ ...userData, phone_number: e.target.value })}
               />
             </div>
-          </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="date_of_birth">Date of Birth</Label>
             <Input 
-              id="email" 
-              type="email" 
-              value={profileData.email}
-              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input 
-              id="phone" 
-              type="tel" 
-              value={profileData.phone}
-              onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of Birth</Label>
-            <Input 
-              id="dateOfBirth" 
+              id="date_of_birth"
               type="date" 
-              value={profileData.dateOfBirth}
-              onChange={(e) => setProfileData({ ...profileData, dateOfBirth: e.target.value })}
+              value={userData.date_of_birth}
+              onChange={(e) => setUserData({ ...userData, date_of_birth: e.target.value })}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Current Address</Label>
             <Input 
               id="address" 
-              value={profileData.address}
-              onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+              value={userData.address}
+              onChange={(e) => setUserData({ ...userData, address: e.target.value })}
             />
           </div>
           <Button>Save Changes</Button>
@@ -123,10 +129,10 @@ export default function ProfilePage() {
               <Label htmlFor="company">Company</Label>
               <Input 
                 id="company" 
-                value={profileData.employment.company}
-                onChange={(e) => setProfileData({ 
-                  ...profileData, 
-                  employment: { ...profileData.employment, company: e.target.value }
+                value={userData.employment.company}
+                onChange={(e) => setUserData({
+                  ...userData,
+                  employment: { ...userData.employment, company: e.target.value }
                 })}
               />
             </div>
@@ -134,10 +140,10 @@ export default function ProfilePage() {
               <Label htmlFor="position">Position</Label>
               <Input 
                 id="position" 
-                value={profileData.employment.position}
-                onChange={(e) => setProfileData({ 
-                  ...profileData, 
-                  employment: { ...profileData.employment, position: e.target.value }
+                value={userData.employment.position}
+                onChange={(e) => setUserData({
+                  ...userData,
+                  employment: { ...userData.employment, position: e.target.value }
                 })}
               />
             </div>
@@ -147,10 +153,10 @@ export default function ProfilePage() {
             <Input 
               id="income" 
               type="number" 
-              value={profileData.employment.income}
-              onChange={(e) => setProfileData({ 
-                ...profileData, 
-                employment: { ...profileData.employment, income: parseFloat(e.target.value) || 0 }
+              value={userData.employment.income}
+              onChange={(e) => setUserData({
+                ...userData,
+                employment: { ...userData.employment, income: parseFloat(e.target.value) || 0 }
               })}
             />
           </div>
@@ -158,7 +164,8 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* References */}
+{/*  temporarily removing references section to test a theory */}
+      {/* References
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -168,7 +175,7 @@ export default function ProfilePage() {
           <CardDescription>Your rental references</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {profileData.references.map((ref, index) => (
+          {userData.references.map((ref, index) => (
             <div key={index} className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold">{ref.name}</h4>
@@ -185,7 +192,7 @@ export default function ProfilePage() {
           <Button variant="outline">Add Reference</Button>
         </CardContent>
       </Card>
-
+*/}
       {/* Application Documents */}
       <Card>
         <CardHeader>

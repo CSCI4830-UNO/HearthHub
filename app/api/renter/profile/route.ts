@@ -33,9 +33,16 @@ export async function GET(request: NextRequest) {
 
     const { data: tenantData, error: fetchTenantError } = await supabase
       .from('tenant')
-      .select('date_of_birth, address, employment, references')
+      .select('date_of_birth, address, employment')
       .eq('user_id', authUser.id)
       .single();
+
+// removed references from the above table to test a theory about tenant.refernces crashing the code
+    //const { data: tenantData, error: fetchTenantError } = await supabase
+      //.from('tenant')
+      //.select('date_of_birth, address, employment, references')
+      //.eq('user_id', authUser.id)
+      //.single();
 
     if (fetchTenantError) {
       console.error('Error fetching tenant:', fetchTenantError);
@@ -45,7 +52,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ ...userData, ...tenantData }, { status: 200 });
+    return NextResponse.json({...userData,...tenantData,
+        employment: tenantData.employment
+        ? (typeof tenantData.employment === "string"
+            ? JSON.parse(tenantData.employment) // if stored as JSON string
+            : tenantData.employment)            // if already JSONB
+        : { company: "", position: "", income: 0 },
+      references: tenantData?.references
+        ? (typeof tenantData.references === "string"
+            ? JSON.parse(tenantData.references)
+            : tenantData.references)
+        : []
+    }, { status: 200 });
 
   } catch (error) {
     console.error('Unexpected error:', error);
