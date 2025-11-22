@@ -17,25 +17,56 @@ const [userData, setUserData] = useState({
   date_of_birth: "",
   address: "",
   employment: { company: "", position: "", income: 0, } // employment is passing an an obj???
-  // , references: [] // This has to be an array
-});
+  });
       {/* The fetch links to whatever folder the GET */}
       {/* You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot */}
       useEffect(() => {
-        fetch("http://localhost:3000/api/renter/profile", { credentials: "include" })
+        fetch("/api/renter/profile", { credentials: "include" })
           .then(response => response.json())
           .then(response => {
-            console.log("You are pulling this data:", response);
-            console.log("GET /api/renter/profile returning:", { ...userData, ...tenantData });
+            console.log("Data received by React:", response);
             setUserData(prev => ({
               ...prev,
               ...response,
               employment: response.employment || { company: "", position: "", income: 0 }
-              //references: response.references || []
+              // , references: response.references || [] // taking this out just for now
             }));
           })
           .catch(error => console.error(error));
       }, []);
+
+
+{/* This is your POST code that updates the user database entries */}
+const handleSave = async () => {
+    try {
+      const response = await fetch("/api/renter/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          ...userData,
+          employment: JSON.stringify(userData.employment),
+          references: JSON.stringify(userData.references)
+        })
+      });
+
+      const result = await response.json();
+      {/* You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot */}
+      console.log("Here's what was posted to the db:", result);
+
+      if (response.ok) {
+        alert("Changes updated!");
+      } else {
+        alert("Failed to update: " + result.error);
+        console.log("Update result:", result.error);
+      }
+    } catch (error) {
+      console.error("Error updating:", error);
+      alert("Unexpected error occurred.");
+      console.log("Update result:", error);
+    }
+  };
+
 
    return (
       <div className="space-y-6 max-w-4xl">
@@ -110,11 +141,14 @@ const [userData, setUserData] = useState({
               onChange={(e) => setUserData({ ...userData, address: e.target.value })}
             />
           </div>
-          <Button>Save Changes</Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </CardContent>
       </Card>
+    </div>
+  );
+}
 
-      {/* Employment Information */}
+      {/* Employment Information
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -163,9 +197,13 @@ const [userData, setUserData] = useState({
           <Button>Save Changes</Button>
         </CardContent>
       </Card>
-
-{/*  temporarily removing references section to test a theory */}
-      {/* References
+// This is your next code to be uncommented
+    </div>
+  );
+}
+//
+  temporarily removing references section to test a theory
+       References
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -192,8 +230,8 @@ const [userData, setUserData] = useState({
           <Button variant="outline">Add Reference</Button>
         </CardContent>
       </Card>
-*/}
-      {/* Application Documents */}
+
+      {/* Application Documents
       <Card>
         <CardHeader>
           <CardTitle>Application Documents</CardTitle>
@@ -226,4 +264,4 @@ const [userData, setUserData] = useState({
     </div>
   );
 }
-
+*/}

@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
       .eq('id', authUser.id)
       .single();
 
+    console.log("Data from the API:", userData);
+
     if (fetchUserError) {
       console.error('Error fetching user:', fetchUserError);
       return NextResponse.json(
@@ -32,38 +34,24 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: tenantData, error: fetchTenantError } = await supabase
-      .from('tenant')
-      .select('date_of_birth, address, employment')
-      .eq('user_id', authUser.id)
-      .single();
-
-// removed references from the above table to test a theory about tenant.refernces crashing the code
-    //const { data: tenantData, error: fetchTenantError } = await supabase
-      //.from('tenant')
-      //.select('date_of_birth, address, employment, references')
-      //.eq('user_id', authUser.id)
-      //.single();
+      .from("tenant")
+      .select("date_of_birth, address, employment")
+      .eq("user_id", authUser.id)
+      .maybeSingle();
 
     if (fetchTenantError) {
-      console.error('Error fetching tenant:', fetchTenantError);
-      return NextResponse.json(
-        { error: "Failed to load tenant data" },
-        { status: 500 }
-      );
+      console.warn("Tenant fetch error:", fetchTenantError);
     }
 
-    return NextResponse.json({...userData,...tenantData,
-        employment: tenantData.employment
-        ? (typeof tenantData.employment === "string"
-            ? JSON.parse(tenantData.employment) // if stored as JSON string
-            : tenantData.employment)            // if already JSONB
-        : { company: "", position: "", income: 0 },
-      references: tenantData?.references
-        ? (typeof tenantData.references === "string"
-            ? JSON.parse(tenantData.references)
-            : tenantData.references)
-        : []
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        ...userData,
+        ...tenantData,
+        employment: tenantData?.employment || { company: "", position: "", income: 0 },
+        references: tenantData?.references || []
+      },
+      { status: 200 }
+    );
 
   } catch (error) {
     console.error('Unexpected error:', error);
@@ -124,10 +112,10 @@ export async function POST(request: NextRequest) {
     const {data : updatedTenant, error: tenantError} = await supabase
       .from('tenant')
       .upsert({
-        date_of_birth: body.dateOfBirth,
+        date_of_birth: body.date_of_birth, // Dade you will never live down suddenly switching from snake-Case to camelCase LOL!
         address: body.address,
-        employment: body.employment,
-        references: body.references
+        employment: body.employment
+        //, references: body.references  // taking this out just for now
       })
       .eq('user_id', authUser.id)
       .select();
