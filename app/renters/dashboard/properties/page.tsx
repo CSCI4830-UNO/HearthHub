@@ -5,91 +5,103 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/client";
 
-export const startingProperties = [
-  {
-    id: 1,
-    name: "Dundee Flats",
-    address: "4835 Dodge St, Omaha, NE 68132",
-    type: "Apartment",
-    bedrooms: 1,
-    bathrooms: 1,
-    squareFeet: 785,
-    rent: 1000,
-    deposit: 2000,
-    availableDate: "2025-12-01",
-    image: null,
-    amenities: ["Parking", "Laundry", "Air Conditioning", "Pet Friendly"],
-    saved: false,
-  },
-  {
-    id: 2,
-    name: "Juniper Rows",
-    address: "12070 Kimball Plz, Omaha, NE 68142",
-    type: "Suite",
-    bedrooms: 3,
-    bathrooms: 2,
-    squareFeet: 1200,
-    rent: 2300,
-    deposit: 1500,
-    availableDate: "2025-11-15",
-    image: null,
-    amenities: ["Parking", "Furnished", "Gym", "Elevator"],
-    saved: false,
-  },
-  {
-    id: 3,
-    name: "The Duo",
-    address: "222 S 15th St, Omaha, NE 68102",
-    type: "Suite",
-    bedrooms: 3,
-    bathrooms: 2,
-    squareFeet: 1000,
-    rent: 1500,
-    deposit: 2000,
-    availableDate: "2025-12-15",
-    image: null,
-    amenities: ["Parking", "Laundry", "Balcony", "Pool"],
-    saved: false,
-  },
-  {
-    id: 4,
-    name: "The Duke Omaha Apartments",
-    address: "201 N 46th St, Omaha, NE 68132, USA",
-    type: "Condo",
-    bedrooms: 2,
-    bathrooms: 2,
-    squareFeet: 1400,
-    rent: 2000,
-    deposit: 1500,
-    availableDate: "2025-11-01",
-    image: null,
-    amenities: ["Parking", "Laundry", "Gym", "Pet Friendly"],
-    saved: false,
-  },
-];
+interface Property {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+  bedrooms: number;
+  bathrooms: number;
+  squareFeet: number | null;
+  rent: number;
+  deposit: number | null;
+  availableDate: string | null;
+  amenities: string[];
+  saved: boolean;
+}
 
 export default function BrowsePropertiesPage() {
-    {/* Code that controls the toggle Heart buttons  in Lines 183-188 of this page */}
-    const [properties, setProperties] = useState(startingProperties);
-    const toggleSaved = (id) => {setProperties((prev) => {const updated = prev.map((property) => property.id === id ? { ...property, saved: !property.saved } : property);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-    {/* Code that saves Favorites to localStorage */}
+  // Fetch properties from database
+  useEffect(() => {
+    async function fetchProperties() {
+      const supabase = createClient();
+      
+      // Fetch all available properties (status = 'Available' or 'available' or 'Vacant' or 'vacant')
+      const { data, error } = await supabase
+        .from('property')
+        .select('*')
+        .in('status', ['Available', 'available', 'Vacant', 'vacant'])
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching properties:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Map database fields to display format
+      const mappedProperties = (data || []).map((property) => ({
+        id: property.id,
+        name: property.name,
+        address: property.address,
+        type: property.property_type,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        squareFeet: property.square_feet,
+        rent: property.monthly_rent,
+        deposit: property.security_deposit,
+        availableDate: property.available_date,
+        amenities: property.amenities || [],
+        saved: false, // Will be set from localStorage below
+      }));
+
+      // Load saved favorites from localStorage
+      const stored = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
+      const propertiesWithSaved: Property[] = mappedProperties.map((p) => ({
+        ...p,
+        saved: stored.includes(p.id),
+      }));
+
+      setProperties(propertiesWithSaved);
+      setIsLoading(false);
+    }
+
+    fetchProperties();
+  }, []);
+
+  const toggleSaved = (id: number) => {
+    setProperties((prev) => {
+      const updated = prev.map((property) =>
+        property.id === id ? { ...property, saved: !property.saved } : property
+      );
+
+      // Save favorites to localStorage
       const favorites = updated.filter((p) => p.saved).map((p) => p.id);
       localStorage.setItem("favorites", JSON.stringify(favorites));
       return updated;
     });
   };
 
-    useEffect(() => {
-      const stored = JSON.parse(localStorage.getItem("favorites")) || [];
-      setProperties((prev) =>
-        prev.map((p) => ({
-          ...p,
-          saved: stored.includes(p.id),
-        }))
-      );
-    }, []);
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Browse Properties</h1>
+          <p className="text-muted-foreground">
+            Find your perfect home from thousands of listings
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Loading properties...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -210,27 +222,33 @@ export default function BrowsePropertiesPage() {
                     <Bath className="h-4 w-4" />
                     {property.bathrooms}
                   </span>
-                  <span>{property.squareFeet.toLocaleString()} sq ft</span>
-                </div>
-
-                {/* Amenities */}
-                <div className="flex flex-wrap gap-1">
-                  {property.amenities.slice(0, 3).map((amenity) => (
-                    <Badge key={amenity} variant="secondary" className="text-xs">
-                      {amenity}
-                    </Badge>
-                  ))}
-                  {property.amenities.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{property.amenities.length - 3} more
-                    </Badge>
+                  {property.squareFeet && (
+                    <span>{property.squareFeet.toLocaleString()} sq ft</span>
                   )}
                 </div>
 
+                {/* Amenities */}
+                {property.amenities && property.amenities.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {property.amenities.slice(0, 3).map((amenity: string) => (
+                      <Badge key={amenity} variant="secondary" className="text-xs">
+                        {amenity}
+                      </Badge>
+                    ))}
+                    {property.amenities.length > 3 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{property.amenities.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
                 {/* Availability */}
-                <div className="text-xs text-muted-foreground">
-                  Available: {new Date(property.availableDate).toLocaleDateString()}
-                </div>
+                {property.availableDate && (
+                  <div className="text-xs text-muted-foreground">
+                    Available: {new Date(property.availableDate).toLocaleDateString()}
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
@@ -251,10 +269,25 @@ export default function BrowsePropertiesPage() {
         ))}
       </div>
 
+      {/* Empty State */}
+      {properties.length === 0 && !isLoading && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No properties available</h3>
+            <p className="text-muted-foreground text-center">
+              Check back later for new listings
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Load More */}
-      <div className="flex justify-center">
-        <Button variant="outline">Load More Properties</Button>
-      </div>
+      {properties.length > 0 && (
+        <div className="flex justify-center">
+          <Button variant="outline">Load More Properties</Button>
+        </div>
+      )}
     </div>
   );
 }

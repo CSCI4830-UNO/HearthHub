@@ -4,30 +4,102 @@ import { Heart, MapPin, DollarSign, Bed, Bath, Building2, Trash2, Eye } from "lu
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { startingProperties } from "../properties/page";
+import { createClient } from "@/lib/supabase/client";
+
+interface SavedProperty {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+  bedrooms: number;
+  bathrooms: number;
+  squareFeet: number | null;
+  rent: number;
+  deposit: number | null;
+  availableDate: string | null;
+  amenities: string[];
+}
 
 export default function SavedPropertiesPage() {
-  // Pulls data from dashboard/properties that are "Favorited"
-  const [savedProperties, setSavedProperties] = useState([]);
+  const [savedProperties, setSavedProperties] = useState<SavedProperty[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Uses localStorage to grab the "Favorite" properties
+  // Fetch saved properties from database
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("favorites")) || [];
-    const filtered = startingProperties.filter((p) => stored.includes(p.id));
-    setSavedProperties(filtered);
+    async function fetchSavedProperties() {
+      const supabase = createClient();
+      
+      // Get saved property IDs from localStorage
+      const stored = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
+      
+      if (stored.length === 0) {
+        setSavedProperties([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch properties that are saved
+      const { data, error } = await supabase
+        .from('property')
+        .select('*')
+        .in('id', stored)
+        .in('status', ['Available', 'available', 'Vacant', 'vacant']);
+
+      if (error) {
+        console.error('Error fetching saved properties:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Map database fields to display format
+      const mappedProperties = (data || []).map((property) => ({
+        id: property.id,
+        name: property.name,
+        address: property.address,
+        type: property.property_type,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        squareFeet: property.square_feet,
+        rent: property.monthly_rent,
+        deposit: property.security_deposit,
+        availableDate: property.available_date,
+        amenities: property.amenities || [],
+      }));
+
+      setSavedProperties(mappedProperties);
+      setIsLoading(false);
+    }
+
+    fetchSavedProperties();
   }, []);
 
-  // Removes from Favorited selection on the saved page in line 131-137 of this page
-    const removeFromSaved = (id) => {
-        const updated = savedProperties.filter((p) => p.id !== id);
-        setSavedProperties(updated);
+  // Removes from Favorited selection on the saved page
+  const removeFromSaved = (id: number) => {
+    const updated = savedProperties.filter((p) => p.id !== id);
+    setSavedProperties(updated);
 
-    const stored = JSON.parse(localStorage.getItem("favorites")) || [];
+    const stored = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
     const newFavorites = stored.filter((favId) => favId !== id);
-        localStorage.setItem("favorites", JSON.stringify(newFavorites));
+    localStorage.setItem("favorites", JSON.stringify(newFavorites));
   };
 
+  if (isLoading) {
     return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Saved Properties</h1>
+            <p className="text-muted-foreground">Properties you've saved for later</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Loading saved properties...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -96,22 +168,26 @@ export default function SavedPropertiesPage() {
                         <Bath className="h-4 w-4" />
                         {property.bathrooms}
                       </span>
-                      <span>{property.squareFeet.toLocaleString()} sq ft</span>
+                      {property.squareFeet && (
+                        <span>{property.squareFeet.toLocaleString()} sq ft</span>
+                      )}
                     </div>
 
                     {/* Amenities */}
-                    <div className="flex flex-wrap gap-1">
-                      {property.amenities.slice(0, 3).map((amenity) => (
-                        <Badge key={amenity} variant="secondary" className="text-xs">
-                          {amenity}
-                        </Badge>
-                      ))}
-                      {property.amenities.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{property.amenities.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
+                    {property.amenities && property.amenities.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {property.amenities.slice(0, 3).map((amenity: string) => (
+                          <Badge key={amenity} variant="secondary" className="text-xs">
+                            {amenity}
+                          </Badge>
+                        ))}
+                        {property.amenities.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{property.amenities.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    )}
 
                     {/* Actions */}
                     <div className="flex gap-2 pt-2">

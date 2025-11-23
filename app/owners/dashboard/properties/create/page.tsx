@@ -109,13 +109,13 @@ export default function AddPropertyPage() {
         description: formData.description,
         amenities: selectedAmenities,
         available_date: formData.availableDate || null,
-        owner_id: user.id,
+        landlord_id: user.id,
         status: 'available',
         created_at: new Date().toISOString(),
       };
 
       const { error } = await supabase
-        .from('properties')
+        .from('property')
         .insert([propertyData]);
 
       if (error) throw error;
