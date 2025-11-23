@@ -23,8 +23,8 @@ export default async function Page({
             Hearth Hub
           </Link>
           <div className="flex items-center gap-4 justify-center flex-1">
-            <Link href="/renters" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>
-            <Link href="/owners" className="font-bold text-muted-foreground hover:text-foreground">For Owners</Link>
+            <Link href="/renters/dashboard" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>
+            <Link href="/owners/dashboard" className="font-bold text-muted-foreground hover:text-foreground">For Owners</Link>
           </div>
           <div className="flex items-center gap-4 justify-end flex-1">
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}

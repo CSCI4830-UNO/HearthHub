@@ -36,8 +36,8 @@ export default async function Home() {
             Hearth Hub
           </Link>
           <div className="flex items-center gap-4 justify-center flex-1">
-            <Link href="/renters" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>
-            <Link href="/owners" className="font-bold text-muted-foreground hover:text-foreground">For Owners</Link>
+            <Link href="/renters/dashboard" className="font-bold text-muted-foreground hover:text-foreground">For Renters</Link>
+            <Link href="/owners/dashboard" className="font-bold text-muted-foreground hover:text-foreground">For Owners</Link>
           </div>
           <div className="flex items-center gap-4 justify-end flex-1">
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
@@ -61,7 +61,7 @@ export default async function Home() {
               Find your perfect home with ease. Search, view, and apply for properties all in one place.
             </p>
             <Button asChild>
-              <Link href="/renters">Explore Renter Features →</Link>
+              <Link href="/renters/dashboard">Explore Renter Features →</Link>
             </Button>
           </div>
           
@@ -138,7 +138,7 @@ export default async function Home() {
               Manage your rental portfolio efficiently. List properties, screen tenants, and grow your business.
             </p>
             <Button asChild>
-              <Link href="/owners">Explore Owner Features →</Link>
+              <Link href="/owners/dashboard">Explore Owner Features →</Link>
             </Button>
           </div>
           

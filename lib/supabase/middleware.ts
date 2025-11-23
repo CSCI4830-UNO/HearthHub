@@ -50,8 +50,6 @@ export async function updateSession(request: NextRequest) {
   // Public paths that don't require authentication
   const publicPaths = [
     "/",
-    "/renters",
-    "/owners",
   ];
   
   const isPublicPath = publicPaths.includes(request.nextUrl.pathname) ||
