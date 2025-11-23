@@ -2,28 +2,76 @@ import {
   Building2, 
   Users, 
   DollarSign, 
-  TrendingUp,
   FileText,
-  AlertCircle,
   CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-const stats = {
-  totalProperties: 12,
-  occupiedUnits: 8,
-  vacantUnits: 4,
-  totalTenants: 8,
-  monthlyRevenue: 24500,
-  pendingApplications: 5,
-  overduePayments: 2,
-  maintenanceRequests: 3,
-};
+export default async function OwnerDashboard() {
+  const supabase = await createClient();
 
-export default function OwnerDashboard() {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  // Fetch properties for this owner
+  const { data: properties, error: propertiesError } = await supabase
+    .from('property')
+    .select('*')
+    .eq('landlord_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (propertiesError) {
+    console.error('Error fetching properties:', propertiesError);
+  }
+
+  const propertiesList = properties || [];
+  const propertyIds = propertiesList.map(p => p.id);
+
+  // Fetch applications for owner's properties
+  let applicationsList: any[] = [];
+  if (propertyIds.length > 0) {
+    const { data: applications, error: applicationsError } = await supabase
+      .from('rental_applications')
+      .select('id, status, user_id')
+      .in('property_id', propertyIds);
+
+    if (applicationsError) {
+      console.error('Error fetching applications:', applicationsError);
+    } else {
+      applicationsList = applications || [];
+    }
+  }
+
+  // Calculate stats
+  const totalProperties = propertiesList.length;
+  const occupiedUnits = propertiesList.filter(p => 
+    p.status?.toLowerCase() === 'occupied' || p.status?.toLowerCase() === 'rented'
+  ).length;
+  const vacantUnits = propertiesList.filter(p => 
+    ['available', 'vacant'].includes(p.status?.toLowerCase() || '')
+  ).length;
+  
+  // Calculate monthly revenue from occupied properties
+  const monthlyRevenue = propertiesList
+    .filter(p => p.status?.toLowerCase() === 'occupied' || p.status?.toLowerCase() === 'rented')
+    .reduce((sum, p) => sum + (p.monthly_rent || 0), 0);
+
+  // Count unique tenants (users with approved applications)
+  const approvedApplications = applicationsList.filter(a => a.status === "approved");
+  const uniqueTenants = new Set(approvedApplications.map(a => a.user_id)).size;
+
+  const pendingApplications = applicationsList.filter(a => a.status === "pending").length;
+
+  // Get recent properties (limit 3)
+  const recentProperties = propertiesList.slice(0, 3);
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -42,9 +90,9 @@ export default function OwnerDashboard() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProperties}</div>
+            <div className="text-2xl font-bold">{totalProperties}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.occupiedUnits} occupied, {stats.vacantUnits} vacant
+              {occupiedUnits} occupied, {vacantUnits} vacant
             </p>
           </CardContent>
         </Card>
@@ -55,12 +103,9 @@ export default function OwnerDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${monthlyRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" />
-                +12% from last month
-              </span>
+              From {occupiedUnits} occupied unit{occupiedUnits !== 1 ? 's' : ''}
             </p>
           </CardContent>
         </Card>
@@ -71,9 +116,9 @@ export default function OwnerDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTenants}</div>
+            <div className="text-2xl font-bold">{uniqueTenants}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.overduePayments} overdue payments
+              {approvedApplications.length} approved application{approvedApplications.length !== 1 ? 's' : ''}
             </p>
           </CardContent>
         </Card>
@@ -84,7 +129,7 @@ export default function OwnerDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingApplications}</div>
+            <div className="text-2xl font-bold">{pendingApplications}</div>
             <p className="text-xs text-muted-foreground">
               Requires review
             </p>
@@ -135,28 +180,13 @@ export default function OwnerDashboard() {
             <CardDescription>Items requiring your attention</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {stats.overduePayments > 0 && (
-              <div className="flex items-start gap-3 p-3 rounded-lg border border-destructive/20 bg-destructive/5">
-                <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Overdue Payments</p>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.overduePayments} tenant(s) have overdue payments
-                  </p>
-                  <Button asChild size="sm" variant="link" className="p-0 h-auto mt-1">
-                    <Link href="/owners/dashboard/payments">View Details →</Link>
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {stats.pendingApplications > 0 && (
+            {pendingApplications > 0 && (
               <div className="flex items-start gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
                 <FileText className="h-5 w-5 text-primary mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">New Applications</p>
                   <p className="text-xs text-muted-foreground">
-                    {stats.pendingApplications} application(s) pending review
+                    {pendingApplications} application{pendingApplications !== 1 ? 's' : ''} pending review
                   </p>
                   <Button asChild size="sm" variant="link" className="p-0 h-auto mt-1">
                     <Link href="/owners/dashboard/applications">Review Now →</Link>
@@ -165,22 +195,7 @@ export default function OwnerDashboard() {
               </div>
             )}
 
-            {stats.maintenanceRequests > 0 && (
-              <div className="flex items-start gap-3 p-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5">
-                <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Maintenance Requests</p>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.maintenanceRequests} open maintenance request(s)
-                  </p>
-                  <Button asChild size="sm" variant="link" className="p-0 h-auto mt-1">
-                    <Link href="/owners/dashboard/messages">View Requests →</Link>
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {stats.overduePayments === 0 && stats.pendingApplications === 0 && stats.maintenanceRequests === 0 && (
+            {pendingApplications === 0 && (
               <div className="flex items-center gap-3 p-3 rounded-lg border border-green-500/20 bg-green-500/5">
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
                 <div>
@@ -209,30 +224,45 @@ export default function OwnerDashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Property {i}</p>
-                    <p className="text-sm text-muted-foreground">123 Main St, City, State</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={i % 2 === 0 ? "default" : "secondary"}>
-                        {i % 2 === 0 ? "Occupied" : "Vacant"}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">$2,500/month</span>
+          {recentProperties.length > 0 ? (
+            <div className="space-y-4">
+              {recentProperties.map((property) => {
+                const isOccupied = property.status?.toLowerCase() === 'occupied' || property.status?.toLowerCase() === 'rented';
+                return (
+                  <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{property.name}</p>
+                        <p className="text-sm text-muted-foreground">{property.address}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant={isOccupied ? "default" : "secondary"}>
+                            {isOccupied ? "Occupied" : "Vacant"}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            ${property.monthly_rent?.toLocaleString() || 0}/month
+                          </span>
+                        </div>
+                      </div>
                     </div>
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/owners/dashboard/properties/${property.id}`}>View Details</Link>
+                    </Button>
                   </div>
-                </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/owners/dashboard/properties/${i}`}>View Details</Link>
-                </Button>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground mb-4">No properties yet</p>
+              <Button asChild variant="outline">
+                <Link href="/owners/dashboard/properties/create">Create Property</Link>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
