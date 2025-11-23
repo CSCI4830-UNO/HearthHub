@@ -2,50 +2,46 @@ import { FileText, CheckCircle2, Clock, XCircle, MapPin, DollarSign, Calendar, B
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-const applications = [
-  {
-    id: 1,
-    property: "Juniper Rows",
-    address: "12070 Kimball Plz, Omaha, NE 68142",
-    rent: 2300,
-    appliedDate: "2025-10-10",
-    status: "pending",
-    statusMessage: "Under review by property owner",
-  },
-  {
-    id: 2,
-    property: "The Duo",
-    address: "222 S 15th St, Omaha, NE 68102",
-    rent: 1500,
-    appliedDate: "2025-10-20",
-    status: "approved",
-    statusMessage: "Congratulations! Your application has been approved.",
-  },
-  {
-    id: 3,
-    property: "The Duke Omaha Apartments",
-    address: "201 N 46th St, Omaha, NE 68132",
-    rent: 2000,
-    appliedDate: "2025-10-30",
-    status: "pending",
-    statusMessage: "Under review by property owner",
-  },
-  {
-    id: 4,
-    property: "Dundee Flats",
-    address: "4835 Dodge St, Omaha, NE 68132",
-    rent: 1000,
-    appliedDate: "2025-10-09",
-    status: "rejected",
-    statusMessage: "Application was not approved at this time",
-  },
-];
+export default async function ApplicationsPage() {
+  const supabase = await createClient();
 
-export default function ApplicationsPage() {
-  const pending = applications.filter(a => a.status === "pending").length;
-  const approved = applications.filter(a => a.status === "approved").length;
-  const rejected = applications.filter(a => a.status === "rejected").length;
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  // Fetch applications for this user with property details
+  const { data: applications, error } = await supabase
+    .from('rental_applications')
+    .select(`
+      id,
+      status,
+      applied_date,
+      property_id,
+      property:property_id (
+        id,
+        name,
+        address,
+        monthly_rent
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('applied_date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching applications:', error);
+  }
+
+  // Calculate stats
+  const applicationsList = applications || [];
+  const pending = applicationsList.filter(a => a.status === "pending").length;
+  const approved = applicationsList.filter(a => a.status === "approved").length;
+  const rejected = applicationsList.filter(a => a.status === "rejected").length;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -57,6 +53,19 @@ export default function ApplicationsPage() {
         return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Rejected</Badge>;
       default:
         return <Badge>{status}</Badge>;
+    }
+  };
+
+  const getStatusMessage = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Under review by property owner";
+      case "approved":
+        return "Congratulations! Your application has been approved.";
+      case "rejected":
+        return "Application was not approved at this time";
+      default:
+        return "";
     }
   };
 
@@ -75,7 +84,7 @@ export default function ApplicationsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Applications</CardDescription>
-            <CardTitle className="text-2xl">{applications.length}</CardTitle>
+            <CardTitle className="text-2xl">{applicationsList.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
@@ -100,65 +109,70 @@ export default function ApplicationsPage() {
 
       {/* Applications List */}
       <div className="grid gap-4">
-        {applications.map((application) => (
-          <Card key={application.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-lg font-semibold">{application.property}</h3>
-                    {getStatusBadge(application.status)}
-                  </div>
+        {applicationsList.map((application) => {
+          const property = application.property as any;
+          if (!property) return null;
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        {application.address}
+          return (
+            <Card key={application.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-lg font-semibold">{property.name}</h3>
+                      {getStatusBadge(application.status)}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          {property.address}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Monthly Rent:</span>
+                          <span className="font-bold">${property.monthly_rent?.toLocaleString()}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Monthly Rent:</span>
-                        <span className="font-bold">${application.rent.toLocaleString()}</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Applied:</span>
+                          <span>{new Date(application.applied_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {getStatusMessage(application.status)}
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Applied:</span>
-                        <span>{new Date(application.appliedDate).toLocaleDateString()}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {application.statusMessage}
-                      </div>
-                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-col gap-2 ml-4">
-                  <Button asChild variant="outline" size="sm">
-                    <a href={`/renters/dashboard/properties/${application.id}`}>
-                      View Property
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <a href={`/renters/dashboard/applications/${application.id}`}>
-                      View Details
-                    </a>
-                  </Button>
-                  {application.status === "approved" && (
-                    <Button variant="default" size="sm">
-                      Schedule Tour
+                  <div className="flex flex-col gap-2 ml-4">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/renters/dashboard/properties/${property.id}`}>
+                        View Property
+                      </Link>
                     </Button>
-                  )}
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/renters/dashboard/applications/${application.id}`}>
+                        View Details
+                      </Link>
+                    </Button>
+                    {application.status === "approved" && (
+                      <Button variant="default" size="sm">
+                        Schedule Tour
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {applications.length === 0 && (
+      {applicationsList.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
@@ -167,7 +181,7 @@ export default function ApplicationsPage() {
               Start applying to properties you're interested in
             </p>
             <Button asChild>
-              <a href="/renters/dashboard/properties">Browse Properties</a>
+              <Link href="/renters/dashboard/properties">Browse Properties</Link>
             </Button>
           </CardContent>
         </Card>

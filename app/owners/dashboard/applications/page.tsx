@@ -3,58 +3,88 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-const applications = [
-  {
-    id: 1,
-    applicantName: "Sarah Williams",
-    applicantEmail: "sarah.williams@example.com",
-    property: "Dundee Flats",
-    appliedDate: "2025-11-01",
-    status: "pending",
-    income: 85000,
-    creditScore: 720,
-    moveInDate: "2025-12-01",
-  },
-  {
-    id: 2,
-    applicantName: "Bobby Lee",
-    applicantEmail: "bob.lee@example.com",
-    property: "Juniper Rows",
-    appliedDate: "2025-11-02",
-    status: "pending",
-    income: 95000,
-    creditScore: 780,
-    moveInDate: "2025-12-15",
-  },
-  {
-    id: 3,
-    applicantName: "Emily Davies",
-    applicantEmail: "emily.davies@example.com",
-    property: "The Duo",
-    appliedDate: "2025-10-28",
-    status: "approved",
-    income: 65000,
-    creditScore: 690,
-    moveInDate: "2025-11-15",
-  },
-  {
-    id: 4,
-    applicantName: "Aaron Rogers",
-    applicantEmail: "gopacgo@example.com",
-    property: "The Duke Omaha Apartments",
-    appliedDate: "2025-10-25",
-    status: "rejected",
-    income: 55000,
-    creditScore: 620,
-    moveInDate: "2025-11-01",
-  },
-];
+export default async function ApplicationsPage() {
+  const supabase = await createClient();
 
-export default function ApplicationsPage() {
-  const pending = applications.filter(a => a.status === "pending").length;
-  const approved = applications.filter(a => a.status === "approved").length;
-  const rejected = applications.filter(a => a.status === "rejected").length;
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  // Fetch applications for properties owned by this user
+  // First get all properties owned by this user
+  const { data: properties, error: propertiesError } = await supabase
+    .from('property')
+    .select('id')
+    .eq('landlord_id', user.id);
+
+  if (propertiesError) {
+    console.error('Error fetching properties:', propertiesError);
+  }
+
+  const propertyIds = (properties || []).map(p => p.id);
+
+  // If no properties, show empty state
+  if (propertyIds.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Rental Applications</h1>
+          <p className="text-muted-foreground">
+            Review and manage rental applications from prospective tenants
+          </p>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Create a property listing to start receiving applications
+            </p>
+            <Button asChild>
+              <Link href="/owners/dashboard/properties/create">Create Property</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Fetch applications for these properties with property and user details
+  const { data: applications, error } = await supabase
+    .from('rental_applications')
+    .select(`
+      id,
+      status,
+      applied_date,
+      first_name,
+      last_name,
+      email,
+      monthly_income,
+      move_in_date,
+      property_id,
+      property:property_id (
+        id,
+        name,
+        address
+      )
+    `)
+    .in('property_id', propertyIds)
+    .order('applied_date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching applications:', error);
+  }
+
+  // Calculate stats
+  const applicationsList = applications || [];
+  const pending = applicationsList.filter(a => a.status === "pending").length;
+  const approved = applicationsList.filter(a => a.status === "approved").length;
+  const rejected = applicationsList.filter(a => a.status === "rejected").length;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -67,6 +97,12 @@ export default function ApplicationsPage() {
       default:
         return <Badge>{status}</Badge>;
     }
+  };
+
+  // Calculate annual income from monthly income
+  const getAnnualIncome = (monthlyIncome: number | null) => {
+    if (!monthlyIncome) return null;
+    return monthlyIncome * 12;
   };
 
   return (
@@ -84,7 +120,7 @@ export default function ApplicationsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Applications</CardDescription>
-            <CardTitle className="text-2xl">{applications.length}</CardTitle>
+            <CardTitle className="text-2xl">{applicationsList.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
@@ -107,7 +143,7 @@ export default function ApplicationsPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Filters - TODO: Implement filtering */}
       <div className="flex gap-2">
         <Button variant="outline" size="sm">All</Button>
         <Button variant="outline" size="sm">Pending</Button>
@@ -117,85 +153,106 @@ export default function ApplicationsPage() {
 
       {/* Applications List */}
       <div className="grid gap-4">
-        {applications.map((application) => (
-          <Card key={application.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-lg font-semibold">{application.applicantName}</h3>
-                    {getStatusBadge(application.status)}
+        {applicationsList.map((application) => {
+          const property = application.property as any;
+          if (!property) return null;
+
+          const applicantName = `${application.first_name} ${application.last_name}`;
+          const annualIncome = getAnnualIncome(application.monthly_income);
+
+          return (
+            <Card key={application.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-lg font-semibold">{applicantName}</h3>
+                      {getStatusBadge(application.status)}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Building2 className="h-4 w-4" />
+                          Property
+                        </div>
+                        <p className="font-medium">{property.name}</p>
+                        <p className="text-xs text-muted-foreground">{property.address}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          Applied
+                        </div>
+                        <p className="font-medium">
+                          {new Date(application.applied_date).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Monthly Income</div>
+                        <p className="font-medium">
+                          {application.monthly_income 
+                            ? `$${application.monthly_income.toLocaleString()}/mo`
+                            : "Not provided"
+                          }
+                        </p>
+                        {annualIncome && (
+                          <p className="text-xs text-muted-foreground">
+                            ${annualIncome.toLocaleString()}/year
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Email</div>
+                        <p className="font-medium text-sm">{application.email}</p>
+                      </div>
+                    </div>
+
+                    {application.move_in_date && (
+                      <div className="mt-4 pt-4 border-t">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Desired Move-in:</span>
+                          <span className="font-medium">
+                            {new Date(application.move_in_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Building2 className="h-4 w-4" />
-                        Property
-                      </div>
-                      <p className="font-medium">{application.property}</p>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        Applied
-                      </div>
-                      <p className="font-medium">
-                        {new Date(application.appliedDate).toLocaleDateString()}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">Income</div>
-                      <p className="font-medium">${application.income.toLocaleString()}/year</p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">Credit Score</div>
-                      <p className="font-medium">{application.creditScore}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Desired Move-in:</span>
-                      <span className="font-medium">
-                        {new Date(application.moveInDate).toLocaleDateString()}
-                      </span>
-                    </div>
+                  <div className="flex flex-col gap-2 ml-4">
+                    <Button asChild variant="default" size="sm">
+                      <Link href={`/owners/dashboard/applications/${application.id}`}>
+                        Review Application
+                      </Link>
+                    </Button>
+                    {application.status === "pending" && (
+                      <>
+                        <Button asChild variant="outline" size="sm" className="bg-green-200 hover:bg-green-300 text-black">
+                          <Link href={`/owners/dashboard/applications/${application.id}/approve`}>
+                            Approve
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="bg-red-200 hover:bg-red-300 text-black">
+                          <Link href={`/owners/dashboard/applications/${application.id}/reject`}>
+                            Reject
+                          </Link>
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-2 ml-4">
-                  <Button asChild variant="default" size="sm">
-                    <Link href={`/owners/dashboard/applications/${application.id}`}>
-                      Review Application
-                    </Link>
-                  </Button>
-                  {application.status === "pending" && (
-                    <>
-                      <Button asChild variant="outline" size="sm" className="bg-green-200 hover:bg-green-300 text-black">
-                        <Link href={`/owners/dashboard/applications/${application.id}/approve`}>
-                          Approve
-                        </Link>
-                      </Button>
-                      <Button asChild variant="outline" size="sm" className="bg-red-200 hover:bg-red-300 text-black">
-                        <Link href={`/owners/dashboard/applications/${application.id}/reject`}>
-                          Reject
-                        </Link>
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {applications.length === 0 && (
+      {applicationsList.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />

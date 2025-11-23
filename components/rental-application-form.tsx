@@ -18,11 +18,13 @@ import { createClient } from "@/lib/supabase/client";
 interface RentalApplicationFormProps {
   propertyId: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function RentalApplicationForm({
   propertyId,
   className,
+  disabled = false,
   ...props
 }: RentalApplicationFormProps & React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
@@ -66,6 +68,11 @@ export function RentalApplicationForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (disabled) {
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
 
@@ -78,11 +85,17 @@ export function RentalApplicationForm({
         throw new Error("You must be logged in to submit an application");
       }
 
+      // Convert property_id to number
+      const propertyIdNum = parseInt(propertyId, 10);
+      if (isNaN(propertyIdNum)) {
+        throw new Error("Invalid property ID");
+      }
+
       // Save application to Supabase
       const { error: insertError } = await supabase
         .from("rental_applications")
         .insert({
-          property_id: propertyId,
+          property_id: propertyIdNum, // Convert to number
           user_id: user.id,
           // Personal Information
           first_name: firstName,
@@ -99,7 +112,7 @@ export function RentalApplicationForm({
           current_zip: currentZip,
           current_monthly_rent: monthlyRent ? parseFloat(monthlyRent) : null,
           move_in_date: moveInDate,
-          move_out_reason: moveOutReason,
+          move_out_reason: moveOutReason || null,
           
           // Employment
           employer_name: employerName,
@@ -114,18 +127,24 @@ export function RentalApplicationForm({
           emergency_contact_relationship: emergencyRelationship,
           
           // Additional
-          pets: pets,
-          vehicles: vehicles,
-          additional_notes: additionalNotes,
+          pets: pets || null,
+          vehicles: vehicles || null,
+          additional_notes: additionalNotes || null,
           
           status: "pending",
           applied_date: new Date().toISOString(),
         });
 
       if (insertError) {
-        // helpful error message if table doesn't exist
+        // Handle specific error codes
         if (insertError.code === "42P01") {
           throw new Error("Database table not found. Please create the 'rental_applications' table in Supabase.");
+        }
+        if (insertError.code === "23503") {
+          throw new Error("Invalid property. Please select a valid property.");
+        }
+        if (insertError.code === "23505") {
+          throw new Error("You have already submitted an application for this property.");
         }
         throw insertError;
       }
@@ -165,7 +184,10 @@ export function RentalApplicationForm({
         <CardHeader>
           <CardTitle className="text-2xl">Rental Application</CardTitle>
           <CardDescription>
-            Please fill out all required fields to complete your application
+            {disabled 
+              ? "This application is not available at this time."
+              : "Please fill out all required fields to complete your application"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -435,6 +457,15 @@ export function RentalApplicationForm({
               </div>
             </div>
 
+            {/* Disabled overlay message */}
+            {disabled && (
+              <div className="p-4 bg-muted rounded-lg text-center">
+                <p className="text-muted-foreground">
+                  This application cannot be submitted at this time.
+                </p>
+              </div>
+            )}
+
             {error && <p className="text-sm text-red-500">{error}</p>}
             
             <div className="flex gap-4 pt-4">
@@ -446,7 +477,11 @@ export function RentalApplicationForm({
               >
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="flex-1" 
+                disabled={isLoading || disabled}
+              >
                 {isLoading ? "Submitting..." : "Submit Application"}
               </Button>
             </div>
