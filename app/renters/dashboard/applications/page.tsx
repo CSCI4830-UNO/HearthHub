@@ -1,10 +1,10 @@
-import { FileText, CheckCircle2, Clock, XCircle, MapPin, DollarSign, Calendar, Building2 } from "lucide-react";
+import { FileText, MapPin, DollarSign, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getStatusBadge, getStatusMessage, calculateApplicationStats } from "@/lib/utils/application-utils";
 
 export default async function ApplicationsPage() {
   const supabase = await createClient();
@@ -39,35 +39,8 @@ export default async function ApplicationsPage() {
 
   // Calculate stats
   const applicationsList = applications || [];
-  const pending = applicationsList.filter(a => a.status === "pending").length;
-  const approved = applicationsList.filter(a => a.status === "approved").length;
-  const rejected = applicationsList.filter(a => a.status === "rejected").length;
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="secondary" className="flex items-center gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
-      case "approved":
-        return <Badge variant="default" className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Approved</Badge>;
-      case "rejected":
-        return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Rejected</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
-
-  const getStatusMessage = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "Under review by property owner";
-      case "approved":
-        return "Congratulations! Your application has been approved.";
-      case "rejected":
-        return "Application was not approved at this time";
-      default:
-        return "";
-    }
-  };
+  const stats = calculateApplicationStats(applicationsList);
+  const { pending, approved, rejected } = stats;
 
   return (
     <div className="space-y-6">
@@ -84,7 +57,7 @@ export default async function ApplicationsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Applications</CardDescription>
-            <CardTitle className="text-2xl">{applicationsList.length}</CardTitle>
+            <CardTitle className="text-2xl">{stats.total}</CardTitle>
           </CardHeader>
         </Card>
         <Card>

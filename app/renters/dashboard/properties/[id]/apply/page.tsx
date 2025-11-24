@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { isPropertyAvailable, validatePropertyId } from "@/lib/utils/property-utils";
 
 interface PageProps {
   params: Promise<{
@@ -23,12 +24,14 @@ export default async function ApplyPage({ params }: PageProps) {
     redirect("/auth/login");
   }
 
-  // Convert property ID to number and fetch property details
-  const propertyId = parseInt(id, 10);
+  // Validate and convert property ID to number
+  const validation = validatePropertyId(id);
   
-  if (isNaN(propertyId)) {
+  if (!validation.isValid) {
     notFound();
   }
+  
+  const propertyId = validation.propertyId!;
 
   // Fetch property details
   const { data: property, error } = await supabase
@@ -42,7 +45,7 @@ export default async function ApplyPage({ params }: PageProps) {
   }
 
   // Check if property is available
-  const isAvailable = ['Available', 'available', 'Vacant', 'vacant'].includes(property.status);
+  const isAvailable = isPropertyAvailable(property.status);
 
   // Check if user already applied for this property
   const { data: existingApplication } = await supabase

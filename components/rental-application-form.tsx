@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getErrorMessageFromCode } from "@/lib/utils/error-utils";
+import { validatePropertyId } from "@/lib/utils/property-utils";
 
 interface RentalApplicationFormProps {
   propertyId: string;
@@ -85,11 +87,12 @@ export function RentalApplicationForm({
         throw new Error("You must be logged in to submit an application");
       }
 
-      // Convert property_id to number
-      const propertyIdNum = parseInt(propertyId, 10);
-      if (isNaN(propertyIdNum)) {
-        throw new Error("Invalid property ID");
+      // Validate and convert property_id to number
+      const validation = validatePropertyId(propertyId);
+      if (!validation.isValid) {
+        throw new Error(validation.error || "Invalid property ID");
       }
+      const propertyIdNum = validation.propertyId!;
 
       // Save application to Supabase
       const { error: insertError } = await supabase
@@ -136,17 +139,8 @@ export function RentalApplicationForm({
         });
 
       if (insertError) {
-        // Handle specific error codes
-        if (insertError.code === "42P01") {
-          throw new Error("Database table not found. Please create the 'rental_applications' table in Supabase.");
-        }
-        if (insertError.code === "23503") {
-          throw new Error("Invalid property. Please select a valid property.");
-        }
-        if (insertError.code === "23505") {
-          throw new Error("You have already submitted an application for this property.");
-        }
-        throw insertError;
+        const errorMessage = getErrorMessageFromCode(insertError);
+        throw new Error(errorMessage);
       }
 
       setSuccess(true);
