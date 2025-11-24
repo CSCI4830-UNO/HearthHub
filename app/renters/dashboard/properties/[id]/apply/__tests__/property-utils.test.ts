@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { isPropertyAvailable, validatePropertyId } from '@/lib/utils/property-utils';
 
-// Tests for property utility functions
-describe('Property Utilities', () => {
+// Tests for property utility functions used in application flow
+describe('Property Utilities (Application Context)', () => {
+  // Testing if property is available for applications
   describe('isPropertyAvailable', () => {
     it('should return true for "Available" status', () => {
       expect(isPropertyAvailable('Available')).toBe(true);
@@ -44,6 +45,7 @@ describe('Property Utilities', () => {
     });
   });
 
+  // Testing property ID validation for application submission
   describe('validatePropertyId', () => {
     // Test with valid string number
     it('should validate valid numeric string', () => {
