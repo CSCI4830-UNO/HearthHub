@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { getStatusBadge, getStatusMessage, calculateApplicationStats } from '@/lib/utils/application-utils';
 import { createMockApplications } from '@/__tests__/utils/mocks';
 
-// Testing the application utility functions
+// Testing application utility functions for the project
 describe('Application Utilities', () => {
   describe('getStatusBadge', () => {
     // Test for pending status badge
@@ -112,10 +112,12 @@ describe('Application Utilities', () => {
       expect(stats2.total).toBe(0);
     });
 
+    // Test with only pending apps
     it('should calculate statistics correctly with only pending applications', () => {
       const applications = createMockApplications(5, 'pending');
       const stats = calculateApplicationStats(applications);
       
+      // All should be pending
       expect(stats.total).toBe(5);
       expect(stats.pending).toBe(5);
       expect(stats.approved).toBe(0);
@@ -128,10 +130,11 @@ describe('Application Utilities', () => {
       
       expect(stats.total).toBe(3);
       expect(stats.pending).toBe(0);
-      expect(stats.approved).toBe(3);
+      expect(stats.approved).toBe(3); // all 3 should be approved
       expect(stats.rejected).toBe(0);
     });
 
+    // Testing rejected status
     it('should calculate statistics correctly with only rejected applications', () => {
       const applications = createMockApplications(2, 'rejected');
       const stats = calculateApplicationStats(applications);

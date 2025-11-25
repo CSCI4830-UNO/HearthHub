@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { isPropertyAvailable, validatePropertyId } from '@/lib/utils/property-utils';
 
-// Tests for property utility functions used in application flow
+// Tests for property functions used when applying
 describe('Property Utilities (Application Context)', () => {
-  // Testing if property is available for applications
+  // Check if property can accept applications
   describe('isPropertyAvailable', () => {
     it('should return true for "Available" status', () => {
       expect(isPropertyAvailable('Available')).toBe(true);
@@ -48,14 +48,16 @@ describe('Property Utilities (Application Context)', () => {
   // Testing property ID validation for application submission
   describe('validatePropertyId', () => {
     // Test with valid string number
+    // Test with a string that's a number
     it('should validate valid numeric string', () => {
       const result = validatePropertyId('123');
       
       expect(result.isValid).toBe(true);
       expect(result.propertyId).toBe(123);
-      expect(result.error).toBeUndefined();
+      expect(result.error).toBeUndefined(); // no error should be set
     });
 
+    // Test with actual number type
     it('should validate valid number', () => {
       const result = validatePropertyId(456);
       
@@ -104,12 +106,12 @@ describe('Property Utilities (Application Context)', () => {
       expect(result.propertyId).toBe(-1);
     });
 
-    // Testing decimal handling
+    // What happens with decimals?
     it('should validate decimal strings (truncated)', () => {
       const result = validatePropertyId('123.45');
       
       expect(result.isValid).toBe(true);
-      expect(result.propertyId).toBe(123);
+      expect(result.propertyId).toBe(123); // should just take the integer part
     });
 
     it('should handle very large numbers', () => {

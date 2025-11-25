@@ -16,6 +16,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getErrorMessageFromCode } from "@/lib/utils/error-utils";
 import { validatePropertyId } from "@/lib/utils/property-utils";
+import { prepareApplicationData } from "@/lib/utils/application-utils";
 
 interface RentalApplicationFormProps {
   propertyId: string;
@@ -94,49 +95,38 @@ export function RentalApplicationForm({
       }
       const propertyIdNum = validation.propertyId!;
 
+      // Prepare application data
+      const applicationData = prepareApplicationData({
+        firstName,
+        lastName,
+        email,
+        phone,
+        dateOfBirth,
+        ssn,
+        currentStreet,
+        currentCity,
+        currentState,
+        currentZip,
+        monthlyRent,
+        moveInDate,
+        moveOutReason,
+        employerName,
+        jobTitle,
+        employerPhone,
+        employmentStartDate,
+        monthlyIncome,
+        emergencyName,
+        emergencyPhone,
+        emergencyRelationship,
+        pets,
+        vehicles,
+        additionalNotes,
+      }, propertyIdNum, user.id, user.email);
+
       // Save application to Supabase
       const { error: insertError } = await supabase
         .from("rental_applications")
-        .insert({
-          property_id: propertyIdNum, // Convert to number
-          user_id: user.id,
-          // Personal Information
-          first_name: firstName,
-          last_name: lastName,
-          email: email || user.email,
-          phone: phone,
-          date_of_birth: dateOfBirth,
-          ssn: ssn, // sensitive data, will be encrypted in the future
-          
-          // Current Address
-          current_street: currentStreet,
-          current_city: currentCity,
-          current_state: currentState,
-          current_zip: currentZip,
-          current_monthly_rent: monthlyRent ? parseFloat(monthlyRent) : null,
-          move_in_date: moveInDate,
-          move_out_reason: moveOutReason || null,
-          
-          // Employment
-          employer_name: employerName,
-          job_title: jobTitle,
-          employer_phone: employerPhone,
-          employment_start_date: employmentStartDate,
-          monthly_income: monthlyIncome ? parseFloat(monthlyIncome) : null,
-          
-          // Emergency Contact
-          emergency_contact_name: emergencyName,
-          emergency_contact_phone: emergencyPhone,
-          emergency_contact_relationship: emergencyRelationship,
-          
-          // Additional
-          pets: pets || null,
-          vehicles: vehicles || null,
-          additional_notes: additionalNotes || null,
-          
-          status: "pending",
-          applied_date: new Date().toISOString(),
-        });
+        .insert(applicationData);
 
       if (insertError) {
         const errorMessage = getErrorMessageFromCode(insertError);
