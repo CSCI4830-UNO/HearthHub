@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 export default function ProfilePage() {
-  {/* Match up the variables to the ones the relevant database uses, order does not matter*/}
+
+//Match up the variables to the ones the relevant database uses, order does not matter
 const [userData, setUserData] = useState({
   email: "",
   first_name: "",
@@ -16,10 +17,11 @@ const [userData, setUserData] = useState({
   phone_number: "",
   date_of_birth: "",
   address: "",
-  employment: { company: "", position: "", income: 0, } // employment is passing an an obj???
+  employment: { company: "", position: "", income: 0 },
+  references: []
   });
-      {/* The fetch links to whatever folder the GET */}
-      {/* You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot */}
+      // The fetch links to whatever folder the GET
+      // You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot
       useEffect(() => {
         fetch("/api/renter/profile", { credentials: "include" })
           .then(response => response.json())
@@ -27,16 +29,14 @@ const [userData, setUserData] = useState({
             console.log("Data received by React:", response);
             setUserData(prev => ({
               ...prev,
-              ...response,
-              employment: response.employment || { company: "", position: "", income: 0 }
-              // , references: response.references || [] // taking this out just for now
+              ...response
             }));
           })
           .catch(error => console.error(error));
       }, []);
 
 
-{/* This is your POST code that updates the user database entries */}
+// This is your POST code that updates the user database entries
 const handleSave = async () => {
     try {
       const response = await fetch("/api/renter/profile", {
@@ -44,14 +44,12 @@ const handleSave = async () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          ...userData,
-          employment: JSON.stringify(userData.employment),
-          references: JSON.stringify(userData.references)
+          ...userData
         })
       });
 
       const result = await response.json();
-      {/* You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot */}
+      // You do NOT need "console.log" for the code to pull data but it helps to see what its pulling if you need to troubleshoot
       console.log("Here's what was posted to the db:", result);
 
       if (response.ok) {
@@ -67,6 +65,16 @@ const handleSave = async () => {
     }
   };
 
+// Code to update references
+const handleReference = () => {
+  setUserData({
+    ...userData,
+    references: [
+      ...userData.references,
+      { refName: "", refRelationship: "", refPhone: "" }
+    ]
+  });
+};
 
    return (
       <div className="space-y-6 max-w-4xl">
@@ -90,7 +98,7 @@ const handleSave = async () => {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="first_name">First Name</Label>
                 <Input
                   id="first_name"
                   value={userData.first_name}
@@ -98,7 +106,7 @@ const handleSave = async () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="last_name">Last Name</Label>
                 <Input
                   id="last_name"
                   value={userData.last_name}
@@ -116,7 +124,7 @@ const handleSave = async () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone_number">Phone Number</Label>
               <Input
                 id="phone_number"
                 type="tel"
@@ -144,11 +152,8 @@ const handleSave = async () => {
           <Button onClick={handleSave}>Save Changes</Button>
         </CardContent>
       </Card>
-    </div>
-  );
-}
 
-      {/* Employment Information
+      {/* Employment Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -194,16 +199,11 @@ const handleSave = async () => {
               })}
             />
           </div>
-          <Button>Save Changes</Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </CardContent>
       </Card>
-// This is your next code to be uncommented
-    </div>
-  );
-}
-//
-  temporarily removing references section to test a theory
-       References
+
+      {/* References */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -213,25 +213,66 @@ const handleSave = async () => {
           <CardDescription>Your rental references</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {userData.references.map((ref, index) => (
-            <div key={index} className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold">{ref.name}</h4>
-                <Badge variant="outline">{ref.relationship}</Badge>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  {ref.phone}
+            {userData.references.map((ref, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Name</span>
+                  <Input
+                    value={ref.refName}
+                    onChange={(e) => {
+                      const newRefs = [...userData.references];
+                      newRefs[index].refName = e.target.value;
+                      setUserData({ ...userData, references: newRefs });
+                    }}
+                  />
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Relationship</span>
+                  <Input
+                    value={ref.refRelationship}
+                    onChange={(e) => {
+                      const newRefs = [...userData.references];
+                      newRefs[index].refRelationship = e.target.value;
+                      setUserData({ ...userData, references: newRefs });
+                    }}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Phone</span>
+                  <Input
+                    value={ref.refPhone}
+                    onChange={(e) => {
+                      const newRefs = [...userData.references];
+                      newRefs[index].refPhone = e.target.value;
+                      setUserData({ ...userData, references: newRefs });
+                    }}
+                  />
+                </div>
+
+                {/* Remove button */}
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    const newRefs = userData.references.filter((_, i) => i !== index);
+                    setUserData({ ...userData, references: newRefs });
+                  }}
+                >
+                  Remove Reference
+                </Button>
               </div>
-            </div>
-          ))}
-          <Button variant="outline">Add Reference</Button>
+            ))}
+          <Button variant="outline" onClick={handleReference}>Add Reference</Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </CardContent>
       </Card>
-
+    </div>
+  );
+}
       {/* Application Documents
+
+          *** Not sure if this is necessary right now
+          *** May be easier just to leave it out for now
+
       <Card>
         <CardHeader>
           <CardTitle>Application Documents</CardTitle>

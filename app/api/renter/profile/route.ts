@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 
+// ****   All of your GET data is here
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       .eq('id', authUser.id)
       .single();
 
-    console.log("Data from the API:", userData);
+    console.log("Data from the userData API:", userData);
 
     if (fetchUserError) {
       console.error('Error fetching user:', fetchUserError);
@@ -35,9 +36,11 @@ export async function GET(request: NextRequest) {
 
     const { data: tenantData, error: fetchTenantError } = await supabase
       .from("tenant")
-      .select("date_of_birth, address, employment")
-      .eq("user_id", authUser.id)
+      .select("date_of_birth, address, employment, references")
+      .eq("id", authUser.id)
       .maybeSingle();
+
+    console.log("Data from the tenantData API:", tenantData);
 
     if (fetchTenantError) {
       console.warn("Tenant fetch error:", fetchTenantError);
@@ -62,6 +65,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// ****   All of your POST data is here
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -90,15 +94,15 @@ export async function POST(request: NextRequest) {
     const { data: updatedUser, error: userError } = await supabase
       .from('user')
       .upsert({
+        id: authUser.id,
         first_name: body.first_name,
         last_name: body.last_name,
         phone_number: body.phone_number,
         email: body.email
       })
-      .eq('id', authUser.id)
       .select();
 
-    
+
 
     if (userError) {
       console.error('Error updating user:', userError);
@@ -112,12 +116,12 @@ export async function POST(request: NextRequest) {
     const {data : updatedTenant, error: tenantError} = await supabase
       .from('tenant')
       .upsert({
-        date_of_birth: body.date_of_birth, // Dade you will never live down suddenly switching from snake-Case to camelCase LOL!
-        address: body.address,
-        employment: body.employment
-        //, references: body.references  // taking this out just for now
+          id: authUser.id,
+          date_of_birth: body.date_of_birth, // Dade you will never live down suddenly switching from snake-Case to camelCase LOL!
+          address: body.address,
+          employment: body.employment,
+          references: body.references
       })
-      .eq('user_id', authUser.id)
       .select();
 
       if (tenantError) {
@@ -151,7 +155,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-//delete user account
+// ****   All of your DELETE data is here
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -183,7 +187,7 @@ export async function DELETE(request: NextRequest) {
     const { error: deleteTenantError } = await supabase
       .from('tenant')
       .delete()
-      .eq('user_id', authUser.id);
+      .eq('id', authUser.id);
 
     if (deleteTenantError) {
       console.error('Error deleting tenant:', deleteTenantError);
