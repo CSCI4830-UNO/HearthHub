@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Search, Heart, MapPin, DollarSign, Bed, Bath, Building2, Filter, SlidersHorizontal } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
@@ -60,19 +60,39 @@ export default function BrowsePropertiesPage() {
         saved: false, // Will be set from localStorage below
       }));
 
+
+
       // Load saved favorites from localStorage
       const stored = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
       const propertiesWithSaved: Property[] = mappedProperties.map((p) => ({
         ...p,
         saved: stored.includes(p.id),
       }));
-
       setProperties(propertiesWithSaved);
       setIsLoading(false);
     }
 
     fetchProperties();
   }, []);
+
+    // Need to set to null otherwise it holds onto the number value
+    const [bedroomFilter, setBedroomFilter] = useState<number | null>(null);
+
+    const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+    // Whenever properties change (after fetch), update filteredProperties
+    useEffect(() => {
+      setFilteredProperties(properties);
+    }, [properties]);
+
+    // Code to filter the drop down menu's
+    const handleApplyFilters = () => {
+      const results = properties.filter((p) => {
+        if (bedroomFilter === null) return true;
+        return p.bedrooms >= bedroomFilter;
+      });
+      setFilteredProperties(results);
+    };
+
 
   const toggleSaved = (id: number) => {
     setProperties((prev) => {
@@ -120,28 +140,30 @@ export default function BrowsePropertiesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by location, property type, or features..."
-                className="pl-10"
-              />
-            </div>
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Max Rent</label>
-                <Input type="number" placeholder="5000" />
-              </div>
-              <div className="space-y-2">
                 <label className="text-sm font-medium">Bedrooms</label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
-                  <option>Any</option>
-                  <option>1+</option>
-                  <option>2+</option>
-                  <option>3+</option>
-                  <option>4+</option>
+                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                  value={bedroomFilter ?? ""}
+                  onChange={(e) => setBedroomFilter(e.target.value ? parseInt(e.target.value) : null)}>
+                  <option value="">Any</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">4+</option>
                 </select>
               </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Bathrooms</label>
+              <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
+                <option>Any</option>
+                <option>1+</option>
+                <option>2+</option>
+                <option>3+</option>
+                <option>4+</option>
+              </select>
+            </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Property Type</label>
                 <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
@@ -152,8 +174,17 @@ export default function BrowsePropertiesPage() {
                   <option>Loft</option>
                 </select>
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Square Ft</label>
+                <Input type="number" placeholder="5000" />
+              </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Max Rent</label>
+                  <Input type="number" placeholder="5000" />
+                </div>
+
               <div className="flex items-end">
-                <Button className="w-full">
+                <Button className="w-full" onClick={handleApplyFilters}>
                   <Filter className="mr-2 h-4 w-4" />
                   Apply Filters
                 </Button>
@@ -178,7 +209,7 @@ export default function BrowsePropertiesPage() {
 
       {/* Properties Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {properties.map((property) => (
+        {filteredProperties.map((property) => (
           <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
             <div className="aspect-video bg-muted flex items-center justify-center">
               <Building2 className="h-12 w-12 text-muted-foreground" />
@@ -281,14 +312,6 @@ export default function BrowsePropertiesPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Load More */}
-      {properties.length > 0 && (
-        <div className="flex justify-center">
-          <Button variant="outline">Load More Properties</Button>
-        </div>
-      )}
     </div>
   );
 }
-
