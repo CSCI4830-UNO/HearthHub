@@ -25,6 +25,9 @@ interface Property {
 export default function BrowsePropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [bedroomFilter, setBedroomFilter] = useState<number | null>(null);
+  const [bathroomFilter, setBathroomFilter] = useState<number | null>(null);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 
   // Fetch properties from database
   useEffect(() => {
@@ -76,9 +79,9 @@ export default function BrowsePropertiesPage() {
   }, []);
 
     // Need to set to null otherwise it holds onto the number value
-    const [bedroomFilter, setBedroomFilter] = useState<number | null>(null);
+    
 
-    const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+    
     // Whenever properties change (after fetch), update filteredProperties
     useEffect(() => {
       setFilteredProperties(properties);
@@ -86,11 +89,12 @@ export default function BrowsePropertiesPage() {
 
     // Code to filter the drop down menu's
     const handleApplyFilters = () => {
-      const results = properties.filter((p) => {
-        if (bedroomFilter === null) return true;
-        return p.bedrooms >= bedroomFilter;
-      });
-      setFilteredProperties(results);
+    const results = properties.filter((p) => {
+      if (bedroomFilter !== null && p.bedrooms < bedroomFilter) return false;
+      if (bathroomFilter !== null && p.bathrooms < bathroomFilter) return false;
+      return true;
+    });
+    setFilteredProperties(results);
     };
 
 
@@ -156,13 +160,16 @@ export default function BrowsePropertiesPage() {
               </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Bathrooms</label>
-              <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
-                <option>Any</option>
-                <option>1+</option>
-                <option>2+</option>
-                <option>3+</option>
-                <option>4+</option>
-              </select>
+              <select 
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                  value={bathroomFilter ?? ""}
+                  onChange={(e) => setBathroomFilter(e.target.value ? parseInt(e.target.value) : null)}>
+                  <option value="">Any</option>
+                  <option value="1">1+</option>
+                  <option value="2">2+</option>
+                  <option value="3">3+</option>
+                  <option value="4">4+</option>
+                </select>
             </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Property Type</label>
