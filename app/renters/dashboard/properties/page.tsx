@@ -27,6 +27,9 @@ export default function BrowsePropertiesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [bedroomFilter, setBedroomFilter] = useState<number | null>(null);
   const [bathroomFilter, setBathroomFilter] = useState<number | null>(null);
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string | null>(null);
+  const [sqFtFilter, setSqFFilter] = useState<number | null>(null);
+  const [maxRentFilter, setMaxRentFilter] = useState<number | null>(null);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 
   // Fetch properties from database
@@ -78,24 +81,24 @@ export default function BrowsePropertiesPage() {
     fetchProperties();
   }, []);
 
-    // Need to set to null otherwise it holds onto the number value
-    
-
-    
     // Whenever properties change (after fetch), update filteredProperties
     useEffect(() => {
       setFilteredProperties(properties);
     }, [properties]);
 
     // Code to filter the drop down menu's
-    const handleApplyFilters = () => {
-    const results = properties.filter((p) => {
-      if (bedroomFilter !== null && p.bedrooms < bedroomFilter) return false;
-      if (bathroomFilter !== null && p.bathrooms < bathroomFilter) return false;
-      return true;
-    });
-    setFilteredProperties(results);
-    };
+    // Automatically filter whenever filters or properties change
+    useEffect(() => {
+        const results = properties.filter((p) => {
+        if (bedroomFilter !== null && p.bedrooms < bedroomFilter) return false;
+        if (bathroomFilter !== null && p.bathrooms < bathroomFilter) return false;
+        if (propertyTypeFilter !== null && p.type !== propertyTypeFilter) return false;
+        if (sqFtFilter !== null && p.squareFeet < sqFtFilter) return false;
+        if (maxRentFilter !== null && p.rent > maxRentFilter) return false;
+        return true;
+      });
+      setFilteredProperties(results);
+    }, [properties, bedroomFilter, bathroomFilter, propertyTypeFilter, maxRentFilter, sqFtFilter]);
 
 
   const toggleSaved = (id: number) => {
@@ -143,7 +146,7 @@ export default function BrowsePropertiesPage() {
           <CardTitle>Search Properties</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Bedrooms</label>
@@ -154,8 +157,7 @@ export default function BrowsePropertiesPage() {
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">4+</option>
+                  <option value="4">4+</option>
                 </select>
               </div>
             <div className="space-y-2">
@@ -173,27 +175,47 @@ export default function BrowsePropertiesPage() {
             </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Property Type</label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
-                  <option>Any</option>
-                  <option>Apartment</option>
-                  <option>House</option>
-                  <option>Condo</option>
-                  <option>Loft</option>
+                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                  value={propertyTypeFilter ?? ""}
+                  onChange={(e) => setPropertyTypeFilter(e.target.value || null)}>
+                  <option value="">Any</option>
+                  <option value="Apartment">Apartment</option>
+                  <option value="House">House</option>
+                  <option value="Condo">Condo</option>
+                  <option value="Townhouse">Townhouse</option>
+                  <option value="Loft">Loft</option>
+                  <option value="Studio">Studio</option>
+                  <option value="Duplex">Duplex</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Square Ft</label>
-                <Input type="number" placeholder="5000" />
+                <Input
+                  type="number"
+                  placeholder="3000"
+                  value={sqFtFilter ?? ""}
+                  onChange={(e) =>
+                    setSqFFilter(e.target.value ? parseInt(e.target.value) : null) }/>
               </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Max Rent</label>
-                  <Input type="number" placeholder="5000" />
-                </div>
-
-              <div className="flex items-end">
-                <Button className="w-full" onClick={handleApplyFilters}>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Max Rent</label>
+                <Input
+                  type="number"
+                  placeholder="3000"
+                  value={maxRentFilter ?? ""}
+                  onChange={(e) =>
+                    setMaxRentFilter(e.target.value ? parseInt(e.target.value) : null) }/>
+              </div>
+              <div className="space-y-2 col-span-5">
+                <Button className="w-full" onClick={() => {
+                   setBedroomFilter(null);
+                   setBathroomFilter(null);
+                   setPropertyTypeFilter(null);
+                   setSqFFilter(null);
+                   setMaxRentFilter(null);}}>
                   <Filter className="mr-2 h-4 w-4" />
-                  Apply Filters
+                  Clear Fields
                 </Button>
               </div>
             </div>
@@ -204,14 +226,8 @@ export default function BrowsePropertiesPage() {
       {/* Results */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {properties.length} properties found
+          {filteredProperties.length} properties found
         </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
-            Sort
-          </Button>
-        </div>
       </div>
 
       {/* Properties Grid */}
