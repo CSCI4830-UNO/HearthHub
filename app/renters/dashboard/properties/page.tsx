@@ -150,7 +150,7 @@ export default function BrowsePropertiesPage() {
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Bedrooms</label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                <select className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   value={bedroomFilter ?? ""}
                   onChange={(e) => setBedroomFilter(e.target.value ? parseInt(e.target.value) : null)}>
                   <option value="">Any</option>
@@ -163,7 +163,7 @@ export default function BrowsePropertiesPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Bathrooms</label>
               <select 
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   value={bathroomFilter ?? ""}
                   onChange={(e) => setBathroomFilter(e.target.value ? parseInt(e.target.value) : null)}>
                   <option value="">Any</option>
@@ -175,7 +175,7 @@ export default function BrowsePropertiesPage() {
             </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Property Type</label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                <select className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   value={propertyTypeFilter ?? ""}
                   onChange={(e) => setPropertyTypeFilter(e.target.value || null)}>
                   <option value="">Any</option>
