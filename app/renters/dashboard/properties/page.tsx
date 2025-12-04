@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface Property {
   id: number;
@@ -32,17 +33,18 @@ export default function BrowsePropertiesPage() {
   const [maxRentFilter, setMaxRentFilter] = useState<number | null>(null);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 
-  // Fetch properties from database
+  // Get all the properties from the database when the page loads
   useEffect(() => {
     async function fetchProperties() {
       const supabase = createClient();
       
-      // Fetch all available properties (status = 'Available' or 'available' or 'Vacant' or 'vacant')
+      // Only get properties that are available or vacant
+      // Need to check different cases because status might be capitalized differently
       const { data, error } = await supabase
         .from('property')
         .select('*')
         .in('status', ['Available', 'available', 'Vacant', 'vacant'])
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }); // Show newest first
 
       if (error) {
         console.error('Error fetching properties:', error);
@@ -50,7 +52,8 @@ export default function BrowsePropertiesPage() {
         return;
       }
 
-      // Map database fields to display format
+      // The database uses snake_case but I want to use camelCase in my code
+      // So I'm mapping the fields to match my interface
       const mappedProperties = (data || []).map((property) => ({
         id: property.id,
         name: property.name,
@@ -62,17 +65,16 @@ export default function BrowsePropertiesPage() {
         rent: property.monthly_rent,
         deposit: property.security_deposit,
         availableDate: property.available_date,
-        amenities: property.amenities || [],
-        saved: false, // Will be set from localStorage below
+        amenities: property.amenities || [], // Make sure it's always an array
+        saved: false, // Will check localStorage below to see if it's saved
       }));
 
-
-
-      // Load saved favorites from localStorage
+      // Get the saved favorites from localStorage
+      // Using JSON.parse because localStorage stores strings
       const stored = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
       const propertiesWithSaved: Property[] = mappedProperties.map((p) => ({
         ...p,
-        saved: stored.includes(p.id),
+        saved: stored.includes(p.id), // Check if this property id is in the favorites list
       }));
       setProperties(propertiesWithSaved);
       setIsLoading(false);
@@ -81,13 +83,13 @@ export default function BrowsePropertiesPage() {
     fetchProperties();
   }, []);
 
-    // Whenever properties change (after fetch), update filteredProperties
+    // Update the filtered list whenever the properties list changes
     useEffect(() => {
       setFilteredProperties(properties);
     }, [properties]);
 
-    // Code to filter the drop down menu's
-    // Automatically filter whenever filters or properties change
+    // Filter the properties based on what the user selects in the dropdowns
+    // This runs automatically whenever any filter changes
     useEffect(() => {
         const results = properties.filter((p) => {
         if (bedroomFilter !== null && p.bedrooms < bedroomFilter) return false;
@@ -307,14 +309,14 @@ export default function BrowsePropertiesPage() {
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
                   <Button asChild variant="outline" className="flex-1">
-                    <a href={`/renters/dashboard/properties/${property.id}`}>
+                    <Link href={`/renters/dashboard/properties/${property.id}`}>
                       View Details
-                    </a>
+                    </Link>
                   </Button>
                   <Button asChild className="flex-1">
-                    <a href={`/renters/dashboard/properties/${property.id}/apply`}>
+                    <Link href={`/renters/dashboard/properties/${property.id}/apply`}>
                       Apply Now
-                    </a>
+                    </Link>
                   </Button>
                 </div>
               </div>
