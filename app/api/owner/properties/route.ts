@@ -73,9 +73,8 @@ export async function POST(request: NextRequest) {
             availableDate: body.availableDate
         },
         description: body.description,
-        // is this set up correctly?
-        images: body.images,
-        owner_id: authUser.id
+        owner_id: authUser.id,
+        images: body.images
       })
       .eq('id', body.id)
       .select();

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ export default function EditPropertyPage() {
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -87,7 +88,7 @@ export default function EditPropertyPage() {
           setError("Property not found");
           return;
         }
-
+        const property_id = property.id;
         setFormData({
           name: property.name || "",
           address: property.address || "",
@@ -107,6 +108,20 @@ export default function EditPropertyPage() {
         });
 
         setSelectedAmenities(property.amenities || []);
+        // Parse images if stored as JSON string, otherwise treat as array
+        let images: string[] = [];
+        if (property.images) {
+          if (typeof property.images === 'string') {
+            try {
+              images = JSON.parse(property.images);
+            } catch {
+              images = []; // fallback if parsing fails
+            }
+          } else if (Array.isArray(property.images)) {
+            images = property.images;
+          }
+        }
+        setUploadedImages(images);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -133,6 +148,74 @@ export default function EditPropertyPage() {
         ? prev.filter((a) => a !== amenity)
         : [...prev, amenity]
     );
+  };
+
+  // Method to handle the upload of an Image
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("User not authenticated");
+        return;
+      }
+
+      const files = Array.from(e.target.files);
+      const urls: string[] = [];
+
+      for (const file of files) {
+        // basic client-side validation
+        if (!file.type.startsWith("image/")) {
+          console.warn("Skipping non-image file:", file.name);
+          continue;
+        }
+        const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+        if (file.size > MAX_BYTES) {
+          setError(`File too large: ${file.name}`);
+          continue;
+        }
+
+        // normalize bucket and path
+        const bucket = "Images"; // confirm your bucket name in Supabase dashboard
+        const safeName = file.name.replace(/\s+/g, "_");
+        const filePath = `public/${id}/${Date.now()}-${safeName}`;
+
+        // upload
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from(bucket)
+          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          setError(uploadError.message);
+          continue;
+        }
+
+        // get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath);
+
+        if (publicUrlData?.publicUrl) {
+          urls.push(publicUrlData.publicUrl);
+        } else {
+          console.warn("No public URL returned for", filePath);
+        }
+      }
+
+      if (urls.length > 0) {
+        setUploadedImages((prev) => [...prev, ...urls]);
+      }
+    } catch (err) {
+      console.error("handleImageUpload error:", err);
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  // Remove an image from the uploaded images list
+  const removeImage = (urlToRemove: string) => {
+    setUploadedImages((prev) => prev.filter((url) => url !== urlToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -169,7 +252,7 @@ export default function EditPropertyPage() {
         available_date: formData.availableDate || null,
         landlord_id: user.id,
         status: 'available',
-        // don't overwrite created_at on update
+        images: uploadedImages,
       };
 
       const { error: upsertError } = await supabase
@@ -483,7 +566,7 @@ export default function EditPropertyPage() {
           <CardContent>
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <Upload className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
-              <Label htmlFor="images" className="cursor-pointer">
+              <Label htmlFor="Images" className="cursor-pointer">
                 <span className="text-sm font-medium text-primary hover:underline">
                   Click to upload
                 </span>
@@ -492,16 +575,38 @@ export default function EditPropertyPage() {
                 </span>
               </Label>
               <Input
-                id="images"
+                id="Images"
                 type="file"
                 multiple
                 accept="image/*"
                 className="hidden"
+                onChange={handleImageUpload}
               />
               <p className="text-xs text-muted-foreground mt-2">
                 PNG, JPG, GIF up to 10MB each
               </p>
             </div>
+            {/* Preview uploaded images */}
+            {uploadedImages.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                {uploadedImages.map((url) => (
+                  <div key={url} className="relative">
+                    <img
+                      src={url}
+                      alt="Property preview"
+                      className="h-32 w-full object-cover rounded-md border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(url)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <p className="text-sm text-muted-foreground mt-4">
               Upload images to showcase your property
             </p>

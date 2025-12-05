@@ -89,19 +89,20 @@ export default function AddPropertyPage() {
 
     // Iterates through Image files
     for (const file of files) {
-      const filePath = `${user.id}/${Date.now()}-${file.name}`;
+      const filePath = `public/${user.id}/${Date.now()}-${file.name}`;
       const { data, error } = await supabase.storage
-        .from("images") // bucket name
+        .from("Images") // bucket name
         .upload(filePath, file);
 
       if (error) {
+        console.log("Error uploading file:", error , data);
         setError(error.message);
         return;
       }
 
       // Get public URL
       const { data: publicUrlData } = supabase.storage
-        .from("images")
+        .from("Images")
         .getPublicUrl(filePath);
 
       // After each upload the public URL array is updated
@@ -150,7 +151,7 @@ export default function AddPropertyPage() {
         available_date: formData.availableDate || null,
         landlord_id: user.id,
         status: 'available',
-        images: uploadedImages,
+        //images: uploadedImages,
         created_at: new Date().toISOString(),
       };
 
