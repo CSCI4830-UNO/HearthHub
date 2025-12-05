@@ -38,10 +38,13 @@ export async function POST(request: NextRequest) {
             availableDate: body.availableDate
         },
         description: body.description,
+        // is this set up correctly?
+        images: body.images,
         owner_id: authUser.id
       })
       .eq('id', body.id)
       .select();
+
 
     if (propertyError) {
       console.error('Error updating property:', propertyError);

@@ -236,8 +236,17 @@ export default function BrowsePropertiesPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredProperties.map((property) => (
           <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-            <div className="aspect-video bg-muted flex items-center justify-center">
-              <Building2 className="h-12 w-12 text-muted-foreground" />
+            {/* Code to add the Thumbnail Image to the Tabs */}
+            <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
+              {property.images && property.images.length > 0 ? (
+                <img
+                  src={property.images[0]} // show the first image
+                  alt={property.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Building2 className="h-12 w-12 text-muted-foreground" />
+              )}
             </div>
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -325,7 +334,7 @@ export default function BrowsePropertiesPage() {
         ))}
       </div>
 
-      {/* Empty State */}
+      {/* Empty State only used if there are no photo's added*/}
       {properties.length === 0 && !isLoading && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
