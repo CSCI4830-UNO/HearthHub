@@ -14,7 +14,29 @@ export async function GET(request: NextRequest) {
 
 
     // Fetch tenants info for each property associated with the owner
-    const { data, error } = await supabase.rpc('get tenants');
+    const { data, error } = await supabase
+    
+      .from('lease')
+      .select(`
+        move_in_date,
+        lease_end_date,
+        monthly_rent,
+        security_deposit,
+        status,
+        property:property_id (
+          name, 
+          address, 
+          property_type
+        ),
+        user:tenant_id (
+            email,
+            first_name,
+            last_name, 
+            phone_number
+        )
+      `)
+      .eq('landlord_id', authUser.id)
+
     if (error) {
       console.error("Unhandled error in owner/tenants GET:", error);
       return NextResponse.json({ error: "Internal server error", details: String(error) }, { status: 500 });
