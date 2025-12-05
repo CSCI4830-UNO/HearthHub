@@ -45,6 +45,7 @@ export default function AddPropertyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);  // Array of Strings to hold public URLS
 
   // Form state
   const [formData, setFormData] = useState({
@@ -72,6 +73,44 @@ export default function AddPropertyPage() {
       [name]: value,
     }));
   };
+
+  // Method to handle the upload of an Image
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError("User not authenticated");
+      return;
+    }
+    // Building an Array for multiple Images converted into an Object
+    const files = Array.from(e.target.files);
+    const urls: string[] = [];
+
+    // Iterates through Image files
+    for (const file of files) {
+      const filePath = `${user.id}/${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from("images") // bucket name
+        .upload(filePath, file);
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from("images")
+        .getPublicUrl(filePath);
+
+      // After each upload the public URL array is updated
+      urls.push(publicUrlData.publicUrl);
+    }
+    // React state updated
+    setUploadedImages(urls);
+  };
+
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>
@@ -111,6 +150,7 @@ export default function AddPropertyPage() {
         available_date: formData.availableDate || null,
         landlord_id: user.id,
         status: 'available',
+        images: uploadedImages,
         created_at: new Date().toISOString(),
       };
 
@@ -397,7 +437,7 @@ export default function AddPropertyPage() {
           </CardContent>
         </Card>
 
-        {/* Images */}
+        {/* Code to add an image to a Property */}
         <Card>
           <CardHeader>
             <CardTitle>Property Images</CardTitle>
@@ -422,11 +462,26 @@ export default function AddPropertyPage() {
                 multiple
                 accept="image/*"
                 className="hidden"
+                onChange={handleImageUpload}
               />
               <p className="text-xs text-muted-foreground mt-2">
                 PNG, JPG, GIF up to 10MB each
               </p>
             </div>
+            {/* Code to Preview a Thumbnail image */}
+            {uploadedImages.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                {uploadedImages.map((url) => (
+                  <div key={url} className="relative">
+                    <img
+                      src={url}
+                      alt="Property preview"
+                      className="h-32 w-full object-cover rounded-md border"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
             <p className="text-sm text-muted-foreground mt-4">
               Upload images to showcase your property
             </p>
