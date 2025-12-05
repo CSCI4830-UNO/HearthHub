@@ -151,7 +151,7 @@ export default function AddPropertyPage() {
         available_date: formData.availableDate || null,
         landlord_id: user.id,
         status: 'available',
-        //images: uploadedImages,
+        images: uploadedImages,
         created_at: new Date().toISOString(),
       };
 
