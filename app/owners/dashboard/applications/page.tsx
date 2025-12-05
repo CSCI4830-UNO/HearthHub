@@ -67,6 +67,7 @@ export default async function ApplicationsPage() {
       monthly_income,
       move_in_date,
       property_id,
+      user_id,
       property:property_id (
         id,
         name,
