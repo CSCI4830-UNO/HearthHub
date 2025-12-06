@@ -20,6 +20,7 @@ interface Property {
   deposit: number | null;
   availableDate: string | null;
   amenities: string[];
+  images: string[];
   saved: boolean;
 }
 
@@ -54,20 +55,40 @@ export default function BrowsePropertiesPage() {
 
       // The database uses snake_case but I want to use camelCase in my code
       // So I'm mapping the fields to match my interface
-      const mappedProperties = (data || []).map((property) => ({
-        id: property.id,
-        name: property.name,
-        address: property.address,
-        type: property.property_type,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        squareFeet: property.square_feet,
-        rent: property.monthly_rent,
-        deposit: property.security_deposit,
-        availableDate: property.available_date,
-        amenities: property.amenities || [], // Make sure it's always an array
-        saved: false, // Will check localStorage below to see if it's saved
-      }));
+      const mappedProperties = (data || []).map((property) => {
+        let images: string[] = []; // local variable used for an Array of strings to hold the URLs
+
+        if (property.images) {
+            // If Supabase returns a string then convert into an Array of URLs then assigned directly to images
+            if (typeof property.images === "string") {
+              images = JSON.parse(property.images);
+            }
+            // If Supabase returns and Array then property.images is assigned directly to images
+            else if (Array.isArray(property.images)) {
+              images = property.images;
+            }
+          }
+
+        console.log(images); // Used to backtest the public URLS
+
+          return {
+            id: property.id,
+            name: property.name,
+            address: property.address,
+            type: property.property_type,
+            bedrooms: property.bedrooms,
+            bathrooms: property.bathrooms,
+            squareFeet: property.square_feet,
+            rent: property.monthly_rent,
+            deposit: property.security_deposit,
+            availableDate: property.available_date,
+            amenities: property.amenities || [], // Make sure it's always an array
+            images, // bucket
+            saved: false, // Will check localStorage below to see if its saved
+          };
+        });
+
+        console.log(mappedProperties); // Used to backtest the public URLS
 
       // Get the saved favorites from localStorage
       // Using JSON.parse because localStorage stores strings
