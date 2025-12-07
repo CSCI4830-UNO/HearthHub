@@ -1,53 +1,57 @@
+"use client";
 import { Users, Mail, Phone, Calendar, DollarSign, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-
-const tenants = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "(402) 123-4567",
-    property: "Dundee Flats",
-    moveInDate: "2025-01-15",
-    rent: 1000,
-    status: "current",
-    paymentStatus: "paid",
-    leaseEnd: "2026-01-15",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    phone: "(402) 987-6543",
-    property: "Juniper Rows",
-    moveInDate: "2025-11-01",
-    rent: 2300,
-    status: "current",
-    paymentStatus: "overdue",
-    leaseEnd: "2026-11-01",
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    email: "mike.johnson@example.com",
-    phone: "(402) 456-7890",
-    property: "The Duke Omaha Apartments",
-    moveInDate: "2026-02-01",
-    rent: 2000,
-    status: "current",
-    paymentStatus: "paid",
-    leaseEnd: "2027-02-01",
-  },
-];
+import { useEffect, useState } from "react";
 
 export default function TenantsPage() {
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchTenants = async () => {
+      try {
+        const res = await fetch("/api/owner/tenants", { cache: "no-store" });
+        if (!res.ok) {
+          console.error("Failed to fetch tenants:", res.status, await res.text());
+          return;
+        }
+        const data = await res.json();
+        // route returns an array of lease rows (possibly nested property/user)
+        const rows = Array.isArray(data) ? data : data.tenants || data;
+
+        const mapped = (rows || []).map((r: any, idx: number) => ({
+          id: r.id ?? r.tenant_id ?? `${r.user?.email ?? "tenant"}-${idx}`,
+          name: `${r.user?.first_name || ""} ${r.user?.last_name || ""}`.trim() || "Unknown",
+          email: r.user?.email || "No email",
+          phone: r.user?.phone_number || "No phone",
+          property: r.property?.name || r.property || "Unknown Property",
+          moveInDate: r.move_in_date || "",
+          rent: r.monthly_rent ?? 0,
+          status: r.status || "",
+          leaseEnd: r.lease_end_date || "",
+        }));
+
+        if (mounted) setTenants(mapped);
+      } catch (err) {
+        console.error("Error fetching tenants:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchTenants();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const totalTenants = tenants.length;
   const currentTenants = tenants.filter(t => t.status === "current").length;
-  const overduePayments = tenants.filter(t => t.paymentStatus === "overdue").length;
   const totalMonthlyRent = tenants.filter(t => t.status === "current").reduce((sum, t) => sum + t.rent, 0);
 
   return (
@@ -76,27 +80,12 @@ export default function TenantsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Overdue Payments</CardDescription>
-            <CardTitle className="text-2xl text-red-600">{overduePayments}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Monthly Rent Collected</CardDescription>
+            <CardDescription>Monthly Recurring Rent</CardDescription>
             <CardTitle className="text-2xl">${totalMonthlyRent.toLocaleString()}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Tenants</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input placeholder="Search by name, email, phone, or property..." />
-        </CardContent>
-      </Card>
 
       {/* Tenants List */}
       <div className="grid gap-4">
@@ -109,21 +98,6 @@ export default function TenantsPage() {
                     <h3 className="text-lg font-semibold">{tenant.name}</h3>
                     <Badge variant={tenant.status === "current" ? "default" : "secondary"}>
                       {tenant.status}
-                    </Badge>
-                    <Badge 
-                      variant={tenant.paymentStatus === "paid" ? "default" : "destructive"}
-                    >
-                      {tenant.paymentStatus === "paid" ? (
-                        <span className="flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Paid
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          Overdue
-                        </span>
-                      )}
                     </Badge>
                   </div>
                   
@@ -183,4 +157,3 @@ export default function TenantsPage() {
     </div>
   );
 }
-

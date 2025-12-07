@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Upload } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { ArrowLeft, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,12 +40,15 @@ const amenities = [
   "Cable Included",
 ];
 
-export default function AddPropertyPage() {
+export default function EditPropertyPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id;
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);  // Array of Strings to hold public URLS
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -64,6 +67,71 @@ export default function AddPropertyPage() {
     availableDate: "",
   });
 
+  useEffect(() => {
+    if (!id) return;
+    const fetchProperty = async () => {
+      setIsFetching(true);
+      setError(null);
+      try {
+        const supabase = createClient();
+        const { data: property, error: fetchError } = await supabase
+          .from("property")
+          .select("*")
+          .eq("id", Number(id))
+          .single();
+
+        if (fetchError) {
+          setError(fetchError.message);
+          return;
+        }
+        if (!property) {
+          setError("Property not found");
+          return;
+        }
+        const property_id = property.id;
+        setFormData({
+          name: property.name || "",
+          address: property.address || "",
+          city: property.city || "",
+          state: property.state || "",
+          zipCode: property.zip_code || "",
+          propertyType: property.property_type || "",
+          bedrooms: property.bedrooms?.toString() || "",
+          bathrooms: property.bathrooms?.toString() || "",
+          squareFeet: property.square_feet?.toString() || "",
+          monthlyRent: property.monthly_rent?.toString() || "",
+          deposit: property.security_deposit?.toString() || "",
+          description: property.description || "",
+          availableDate: property.available_date
+            ? new Date(property.available_date).toISOString().split("T")[0]
+            : "",
+        });
+
+        setSelectedAmenities(property.amenities || []);
+        // Parse images if stored as JSON string, otherwise treat as array
+        let images: string[] = [];
+        if (property.images) {
+          if (typeof property.images === 'string') {
+            try {
+              images = JSON.parse(property.images);
+            } catch {
+              images = []; // fallback if parsing fails
+            }
+          } else if (Array.isArray(property.images)) {
+            images = property.images;
+          }
+        }
+        setUploadedImages(images);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchProperty();
+  }, [id]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -74,45 +142,6 @@ export default function AddPropertyPage() {
     }));
   };
 
-  // Method to handle the upload of an Image
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setError("User not authenticated");
-      return;
-    }
-    // Building an Array for multiple Images converted into an Object
-    const files = Array.from(e.target.files);
-    const urls: string[] = [];
-
-    // Iterates through Image files
-    for (const file of files) {
-      const filePath = `public/${user.id}/${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from("Images") // bucket name
-        .upload(filePath, file);
-
-      if (error) {
-        console.log("Error uploading file:", error , data);
-        setError(error.message);
-        return;
-      }
-
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from("Images")
-        .getPublicUrl(filePath);
-
-      // After each upload the public URL array is updated
-      urls.push(publicUrlData.publicUrl);
-    }
-    // React state updated
-    setUploadedImages(urls);
-  };
-
-
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>
       prev.includes(amenity)
@@ -121,8 +150,80 @@ export default function AddPropertyPage() {
     );
   };
 
+  // Method to handle the upload of an Image
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("User not authenticated");
+        return;
+      }
+
+      const files = Array.from(e.target.files);
+      const urls: string[] = [];
+
+      for (const file of files) {
+        // basic client-side validation
+        if (!file.type.startsWith("image/")) {
+          console.warn("Skipping non-image file:", file.name);
+          continue;
+        }
+        const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+        if (file.size > MAX_BYTES) {
+          setError(`File too large: ${file.name}`);
+          continue;
+        }
+
+        // normalize bucket and path
+        const bucket = "Images"; // confirm your bucket name in Supabase dashboard
+        const safeName = file.name.replace(/\s+/g, "_");
+        const filePath = `public/${id}/${Date.now()}-${safeName}`;
+
+        // upload
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from(bucket)
+          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          setError(uploadError.message);
+          continue;
+        }
+
+        // get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath);
+
+        if (publicUrlData?.publicUrl) {
+          urls.push(publicUrlData.publicUrl);
+        } else {
+          console.warn("No public URL returned for", filePath);
+        }
+      }
+
+      if (urls.length > 0) {
+        setUploadedImages((prev) => [...prev, ...urls]);
+      }
+    } catch (err) {
+      console.error("handleImageUpload error:", err);
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  // Remove an image from the uploaded images list
+  const removeImage = (urlToRemove: string) => {
+    setUploadedImages((prev) => prev.filter((url) => url !== urlToRemove));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!id) {
+      setError("Missing property id");
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
@@ -141,10 +242,10 @@ export default function AddPropertyPage() {
         state: formData.state,
         zip_code: formData.zipCode,
         property_type: formData.propertyType,
-        bedrooms: parseInt(formData.bedrooms),
-        bathrooms: parseFloat(formData.bathrooms),
+        bedrooms: parseInt(formData.bedrooms || "0"),
+        bathrooms: parseFloat(formData.bathrooms || "0"),
         square_feet: formData.squareFeet ? parseInt(formData.squareFeet) : null,
-        monthly_rent: parseFloat(formData.monthlyRent),
+        monthly_rent: parseFloat(formData.monthlyRent || "0"),
         security_deposit: formData.deposit ? parseFloat(formData.deposit) : null,
         description: formData.description,
         amenities: selectedAmenities,
@@ -152,14 +253,14 @@ export default function AddPropertyPage() {
         landlord_id: user.id,
         status: 'available',
         images: uploadedImages,
-        created_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      const { error: upsertError } = await supabase
         .from('property')
-        .insert([propertyData]);
+        .update(propertyData)
+        .eq('id', Number(id));
 
-      if (error) throw error;
+      if (upsertError) throw upsertError;
 
       router.push("/owners/dashboard/properties");
     } catch (err) {
@@ -168,6 +269,22 @@ export default function AddPropertyPage() {
       setIsLoading(false);
     }
   };
+
+  if (!id) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <p className="text-destructive">No property id provided in the URL.</p>
+      </div>
+    );
+  }
+
+  if (isFetching) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <p>Loading property...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -179,9 +296,9 @@ export default function AddPropertyPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Add New Property</h1>
+          <h1 className="text-3xl font-bold">Edit Property</h1>
           <p className="text-muted-foreground">
-            Create a new property listing for rent
+            Update the property details below
           </p>
         </div>
       </div>
@@ -438,7 +555,7 @@ export default function AddPropertyPage() {
           </CardContent>
         </Card>
 
-        {/* Code to add an image to a Property */}
+        {/* Images */}
         <Card>
           <CardHeader>
             <CardTitle>Property Images</CardTitle>
@@ -449,7 +566,7 @@ export default function AddPropertyPage() {
           <CardContent>
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <Upload className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
-              <Label htmlFor="images" className="cursor-pointer">
+              <Label htmlFor="Images" className="cursor-pointer">
                 <span className="text-sm font-medium text-primary hover:underline">
                   Click to upload
                 </span>
@@ -458,7 +575,7 @@ export default function AddPropertyPage() {
                 </span>
               </Label>
               <Input
-                id="images"
+                id="Images"
                 type="file"
                 multiple
                 accept="image/*"
@@ -469,7 +586,7 @@ export default function AddPropertyPage() {
                 PNG, JPG, GIF up to 10MB each
               </p>
             </div>
-            {/* Code to Preview a Thumbnail image */}
+            {/* Preview uploaded images */}
             {uploadedImages.length > 0 && (
               <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                 {uploadedImages.map((url) => (
@@ -479,6 +596,13 @@ export default function AddPropertyPage() {
                       alt="Property preview"
                       className="h-32 w-full object-cover rounded-md border"
                     />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(url)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -509,7 +633,7 @@ export default function AddPropertyPage() {
             <Link href="/owners/dashboard/properties">Cancel</Link>
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Creating Property..." : "Create Property"}
+            {isLoading ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </form>
