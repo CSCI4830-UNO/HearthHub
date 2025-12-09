@@ -19,10 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+
 interface PageProps {
-  params: Promise<{
-    id: string;
-  }>;
+  params: { id: string };
 }
 
 export default async function PropertyDetailsPage({ params }: PageProps) {
@@ -72,6 +71,22 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
   // TODO: Maybe add a save/favorite button later, would need to use localStorage on client side
   const amenities = Array.isArray(property.amenities) ? property.amenities : [];
 
+    let images: string[] = []; // creates and Array of Strings
+    if (property.images) {
+      if (typeof property.images === "string")
+         {
+             // Parse the string
+             images = JSON.parse(property.images);
+         }
+      else if (Array.isArray(property.images))
+         {
+             // Its already an Array
+             images = property.images;
+         }
+    }
+
+  console.log("Property images:", property.images); // For debugging images
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
@@ -97,14 +112,34 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left side - shows the main property info */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Image placeholder - would add actual images later */}
+          {/* Image placeholder */}
           <Card>
             <CardContent className="p-0">
-              <div className="aspect-video bg-muted flex items-center justify-center rounded-t-lg">
-                <Building2 className="h-24 w-24 text-muted-foreground" />
+              <div className="aspect-video bg-muted flex items-center justify-center rounded-t-lg overflow-hidden">
+                {images.length > 0 ? ( <img src={images[0]} alt={property.name} /> ) : ( <Building2 className="h-24 w-24 text-muted-foreground" /> )}
               </div>
             </CardContent>
           </Card>
+
+          {images.length > 1 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>More Photos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {images.slice(1).map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`${property.name} thumbnail ${index + 2}`}
+                          className="w-24 h-24 object-cover rounded-md border"
+                        />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
           {/* Only show description if it exists */}
           {property.description && (
