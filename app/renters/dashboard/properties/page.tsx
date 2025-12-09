@@ -116,7 +116,7 @@ export default function BrowsePropertiesPage() {
         if (bedroomFilter !== null && p.bedrooms < bedroomFilter) return false;
         if (bathroomFilter !== null && p.bathrooms < bathroomFilter) return false;
         if (propertyTypeFilter !== null && p.type !== propertyTypeFilter) return false;
-        if (sqFtFilter !== null && p.squareFeet < sqFtFilter) return false;
+        if (sqFtFilter !== null && (p.squareFeet === null || p.squareFeet < sqFtFilter)) return false;
         if (maxRentFilter !== null && p.rent > maxRentFilter) return false;
         return true;
       });
