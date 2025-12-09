@@ -37,9 +37,37 @@ export default async function IndexPage({ params }: PageProps) {
     notFound();
   }
 
-  console.log("USER: ", user)
+
+
+
+
+  // Get the lease for this tenant
+  const { data: lease, error: leaseError } = await supabase
+    .from('lease')
+    .select(`*`)
+  if (leaseError) {
+    console.error('Error fetching properties:', leaseError);
+  }
+
+  // landlord
+  const { data: properties, error: propertiesError } = await supabase
+    .from('property')
+    .select('id')
+    .eq('landlord_id', user.id);
+
+  if (propertiesError) {
+    console.error('Error fetching properties:', propertiesError);
+  }
+
+
+  console.log("Lease: ", lease)
   console.log("property: ", property)
+  console.log("properties: ", properties)
   
+
+
+
+
 
   const calculatePaymentAmount = () => {
 
@@ -64,14 +92,14 @@ export default async function IndexPage({ params }: PageProps) {
 
   // Create PaymentIntent as soon as the page loads
   const { client_secret: clientSecret } = await stripe.paymentIntents.create({
-    description: propertyName + "\n" +propertyAddress,
+    description: propertyName + "\n\n" +propertyAddress,
     amount: calculatePaymentAmount(),
     currency: 'USD',
     metadata: {"Payment month": dateName, 
       "email": userEmail,
       "Phone" : userPhone,
     },
-    receipt_email: user.email,
+    receipt_email: userEmail,
     
     automatic_payment_methods: {enabled: true,},
   })
