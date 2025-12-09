@@ -17,10 +17,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import ImageGallery from "@/components/image-gallery";
 
+
 interface PageProps {
-  params: Promise<{
-    id: string;
-  }>;
+  params: { id: string };
 }
 
 export default function PropertyDetailsPage({ params }: PageProps) {
@@ -130,6 +129,22 @@ export default function PropertyDetailsPage({ params }: PageProps) {
   const isAvailable = ['Available', 'available', 'Vacant', 'vacant'].includes(property.status);
   const amenities = Array.isArray(property.amenities) ? property.amenities : [];
 
+    let images: string[] = []; // creates and Array of Strings
+    if (property.images) {
+      if (typeof property.images === "string")
+         {
+             // Parse the string
+             images = JSON.parse(property.images);
+         }
+      else if (Array.isArray(property.images))
+         {
+             // Its already an Array
+             images = property.images;
+         }
+    }
+
+  console.log("Property images:", property.images); // For debugging images
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
@@ -153,10 +168,58 @@ export default function PropertyDetailsPage({ params }: PageProps) {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+<<<<<<< HEAD
           {/* Image Gallery */}
           <ImageGallery images={images} propertyName={property.name} />
 
           {/* Property Details */}
+=======
+          {/* Image placeholder */}
+          <Card>
+            <CardContent className="p-0">
+              <div className="aspect-video bg-muted flex items-center justify-center rounded-t-lg overflow-hidden">
+                {images.length > 0 ? ( <img src={images[0]} alt={property.name} /> ) : ( <Building2 className="h-24 w-24 text-muted-foreground" /> )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {images.length > 1 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>More Photos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {images.slice(1).map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`${property.name} thumbnail ${index + 2}`}
+                          className="w-24 h-24 object-cover rounded-md border"
+                        />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+          {/* Only show description if it exists */}
+          {property.description && (
+            <Card>
+              <CardHeader>
+                <CardTitle>About This Property</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Using whitespace-pre-wrap to keep line breaks from the description */}
+                <p className="text-muted-foreground whitespace-pre-wrap">
+                  {property.description}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Show all the property details like bedrooms, bathrooms, etc. */}
+>>>>>>> daff5b056d89a8962735cb085bcd79bfdb9764e7
           <Card>
             <CardHeader>
               <CardTitle>Property Details</CardTitle>
