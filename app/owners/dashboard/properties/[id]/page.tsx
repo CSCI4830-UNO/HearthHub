@@ -10,7 +10,6 @@ import {
   Square, 
   Calendar,
   Shield,
-  Heart,
   FileText,
   CheckCircle2
 } from "lucide-react";
@@ -18,6 +17,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import ImageGalleryServer from "@/components/image-gallery";
 
 interface PageProps {
   params: Promise<{
@@ -69,8 +69,17 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
     .maybeSingle();
 
   // Make sure amenities is an array, sometimes it might be null or something else
-  // TODO: Maybe add a save/favorite button later, would need to use localStorage on client side
   const amenities = Array.isArray(property.amenities) ? property.amenities : [];
+
+  // Parse images exactly like the renter side
+  let images: string[] = [];
+  if (property.images) {
+    if (typeof property.images === "string") {
+      images = JSON.parse(property.images);
+    } else if (Array.isArray(property.images)) {
+      images = property.images;
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -97,14 +106,8 @@ export default async function PropertyDetailsPage({ params }: PageProps) {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left side - shows the main property info */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Image placeholder - would add actual images later */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="aspect-video bg-muted flex items-center justify-center rounded-t-lg">
-                <Building2 className="h-24 w-24 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Image Gallery - now using the proper component */}
+          <ImageGalleryServer images={images} propertyName={property.name} />
 
           {/* Only show description if it exists */}
           {property.description && (
