@@ -157,24 +157,6 @@ export default function RentPaymentsPage() {
               <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
                   {property.images && property.images.length > 0 ? (
-<<<<<<< Updated upstream
-                    <img
-                      src={property.images[0]} // show the first image
-                      alt={property.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Building2 className="h-12 w-12 text-muted-foreground" />
-                  )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                        onClick={() => removeFromSaved(property.id)}
-                      >
-                    <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                  </Button>
-=======
                 <img
                   src={property.images[0]} // show the first image
                   alt={property.name}
@@ -184,7 +166,6 @@ export default function RentPaymentsPage() {
                 <Building2 className="h-12 w-12 text-muted-foreground" />
               )}
                   <Building2 className="h-12 w-12 text-muted-foreground" />
->>>>>>> Stashed changes
                 </div>
                 <CardHeader>
                   <CardTitle className="text-lg">{property.name}</CardTitle>
