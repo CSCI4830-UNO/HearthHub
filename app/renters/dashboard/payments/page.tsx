@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { redirect, notFound } from "next/navigation";
 
 interface RentedProperty {
   id: number;
@@ -16,12 +17,12 @@ interface RentedProperty {
   bathrooms: number;
   squareFeet: number | null;
   rent: number;
-  deposit: number | null;
+  deposit: number;
   availableDate: string | null;
   amenities: string[];
   images: string[];
-  saved: boolean;
 }
+
 
 export default function RentPaymentsPage() {
   const [savedProperties, setSavedProperties] = useState<RentedProperty[]>([]);
@@ -31,25 +32,40 @@ export default function RentPaymentsPage() {
   useEffect(() => {
     async function fetchRentedProperties() {
       const supabase = createClient();
-      
-      // Get saved property IDs from localStorage
-      const stored = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
-      
-      if (stored.length === 0) {
-        setSavedProperties([]);
+
+      // Check if user is authenticated
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          redirect("/auth/login");
+        }
+
+      // Fetch leases with user
+      const { data: lease, error: leaseError } = await supabase
+        .from('lease')
+        .select(`*`)
+        .eq('tenant_id', user.id);
+
+      if (leaseError) {
+        console.error('Error fetching leased properties:', leaseError);
         setIsLoading(false);
         return;
       }
 
-      // Fetch properties that are saved
+      // Create array of leased ids to get property data
+      let leasedArray = []
+      for(let i = 0; i < lease.length; i++)
+        {
+          leasedArray.push(lease[i].property_id)
+        }
+
+      // Fetch properties that are leased
       const { data, error } = await supabase
         .from('property')
         .select('*')
-        .in('id', stored)
-        .in('status', ['Available', 'available', 'Vacant', 'vacant']);
+        .in('id', leasedArray);
 
       if (error) {
-        console.error('Error fetching saved properties:', error);
+        console.error('Error fetching leased properties:', error);
         setIsLoading(false);
         return;
       }
@@ -69,9 +85,6 @@ export default function RentPaymentsPage() {
               images = property.images;
             }
           }
-
-        console.log(images); // Used to backtest the public URLS
-
           return {
             id: property.id,
             name: property.name,
@@ -85,18 +98,8 @@ export default function RentPaymentsPage() {
             availableDate: property.available_date,
             amenities: property.amenities || [], // Make sure it's always an array
             images, // bucket
-            saved: false, // Will check localStorage below to see if its saved
           };
         });
-
-        console.log(mappedProperties); // Used to backtest the public URLS
-
-      // Get the saved favorites from localStorage
-      // Using JSON.parse because localStorage stores strings
-      const propertiesWithSaved: RentedProperty[] = mappedProperties.map((p) => ({
-        ...p,
-        saved: stored.includes(p.id), // Check if this property id is in the favorites list
-      }));
 
       setSavedProperties(mappedProperties);
       setIsLoading(false);
@@ -106,29 +109,17 @@ export default function RentPaymentsPage() {
   }, []);
 
 
-
-
-  // Removes from Favorited selection on the saved page
-  const removeFromSaved = (id: number) => {
-    const updated = savedProperties.filter((p) => p.id !== id);
-    setSavedProperties(updated);
-
-    const stored = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
-    const newFavorites = stored.filter((favId) => favId !== id);
-    localStorage.setItem("favorites", JSON.stringify(newFavorites));
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Rent Payments</h1>
-            <p className="text-muted-foreground">Properties to make a rent payment</p>
+            <h1 className="text-3xl font-bold">Payments</h1>
+            <p className="text-muted-foreground">Properties currenty leased to make a rent payment</p>
           </div>
         </div>
         <div className="flex items-center justify-center py-12">
-          <p className="text-muted-foreground">Loading saved properties...</p>
+          <p className="text-muted-foreground">Loading leased properties...</p>
         </div>
       </div>
     );
@@ -139,11 +130,11 @@ export default function RentPaymentsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Rent Payments</h1>
-            <p className="text-muted-foreground">Properties to make a rent payment</p>
+            <h1 className="text-3xl font-bold">Payments</h1>
+            <p className="text-muted-foreground">Properties currenty leased to make a rent payment</p>
           </div>
           <div className="text-sm text-muted-foreground">
-            {savedProperties.length} rented
+            {savedProperties.length} leased
           </div>
         </div>
 
@@ -151,9 +142,9 @@ export default function RentPaymentsPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Heart className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No saved properties yet</h3>
+              <h3 className="text-lg font-semibold mb-2">No leased properties yet</h3>
               <p className="text-muted-foreground text-center mb-4">
-                Start browsing properties and save the ones you like
+                Start a new lease and make rent payments
               </p>
               <Button asChild>
                 <a href="/renters/dashboard/properties">Browse Properties</a>
@@ -166,22 +157,15 @@ export default function RentPaymentsPage() {
               <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
                   {property.images && property.images.length > 0 ? (
-                    <img
-                      src={property.images[0]} // show the first image
-                      alt={property.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Building2 className="h-12 w-12 text-muted-foreground" />
-                  )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                        onClick={() => removeFromSaved(property.id)}
-                      >
-                    <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                  </Button>
+                <img
+                  src={property.images[0]} // show the first image
+                  alt={property.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Building2 className="h-12 w-12 text-muted-foreground" />
+              )}
+                  <Building2 className="h-12 w-12 text-muted-foreground" />
                 </div>
                 <CardHeader>
                   <CardTitle className="text-lg">{property.name}</CardTitle>
@@ -203,6 +187,10 @@ export default function RentPaymentsPage() {
 
                     {/* Details */}
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div>
+                        <p className="text-2xs font-bold">${property.deposit.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">deposit</p>
+                      </div>
                       <span className="flex items-center gap-1">
                         <Bed className="h-4 w-4" />
                         {property.bedrooms}
