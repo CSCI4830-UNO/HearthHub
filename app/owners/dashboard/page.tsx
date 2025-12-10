@@ -164,12 +164,6 @@ export default async function OwnerDashboard() {
                 View Payments
               </Link>
             </Button>
-            <Button asChild className="w-full justify-start" variant="outline">
-              <Link href="/owners/dashboard/messages">
-                <Users className="mr-2 h-4 w-4" />
-                Check Messages
-              </Link>
-            </Button>
           </CardContent>
         </Card>
 

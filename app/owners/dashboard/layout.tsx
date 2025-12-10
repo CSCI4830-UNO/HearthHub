@@ -21,7 +21,6 @@ const navigation = [
   { name: "Tenants", href: "/owners/dashboard/tenants", icon: Users },
   { name: "Applications", href: "/owners/dashboard/applications", icon: FileText },
   { name: "Payments", href: "/owners/dashboard/payments", icon: DollarSign },
-  { name: "Messages", href: "/owners/dashboard/messages", icon: MessageSquare },
   { name: "Settings", href: "/owners/dashboard/settings", icon: Settings },
 ];
 
