@@ -211,6 +211,7 @@ export default function ApproveApplicationPage() {
           lease_end_date: formData.lease_end_date,
           monthly_rent: parseFloat(formData.monthly_rent),
           security_deposit: formData.security_deposit ? parseFloat(formData.security_deposit) : null,
+          landlord_id: user.id // Current authenticated owner
         }),
       });
 

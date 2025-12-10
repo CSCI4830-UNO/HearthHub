@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
                 lease_end_date: body.lease_end_date,
                 monthly_rent: body.monthly_rent,
                 security_deposit: body.security_deposit,
-                status: 'current'
+                status: 'current',
+                landlord_id: body.landlord_id
             }
         )
         .select()
