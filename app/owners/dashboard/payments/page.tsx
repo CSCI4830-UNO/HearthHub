@@ -2,21 +2,26 @@ import { DollarSign, CheckCircle2, AlertCircle, Calendar, Download } from "lucid
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/server";
+import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
 
 const payments = [
   {
     id: 1,
     tenant: "John Doe",
+    email: "JohnD578@hotmail.com",
     property: "The Duke Omaha Apartments",
     amount: 2000,
-    dueDate: "2025-11-01",
-    paidDate: "2025-10-28",
+    dueDate: "2025-12-01",
+    paidDate: "2025-12-05",
     status: "paid",
     method: "Bank Transfer",
   },
   {
     id: 2,
     tenant: "Jane Smith",
+    email: "JaneS8765@hotmail.com",
     property: "Dundee Flats",
     amount: 1000,
     dueDate: "2025-11-01",
@@ -24,29 +29,68 @@ const payments = [
     status: "overdue",
     method: null,
   },
-  {
-    id: 3,
-    tenant: "Mike Johnson",
-    property: "The Duo",
-    amount: 1500,
-    dueDate: "2025-11-01",
-    paidDate: "2025-10-30",
-    status: "paid",
-    method: "Credit Card",
-  },
-  {
-    id: 4,
-    tenant: "Sarah Williams",
-    property: "Juniper Rows",
-    amount: 2300,
-    dueDate: "2025-12-01",
-    paidDate: null,
-    status: "pending",
-    method: null,
-  },
+  // {
+  //   id: 3,
+  //   tenant: "Mike Johnson",
+  //   property: "The Duo",
+  //   amount: 1500,
+  //   dueDate: "2025-11-01",
+  //   paidDate: "2025-10-30",
+  //   status: "paid",
+  //   method: "Credit Card",
+  // },
+  // {
+  //   id: 4,
+  //   tenant: "Sarah Williams",
+  //   property: "Juniper Rows",
+  //   amount: 2300,
+  //   dueDate: "2025-12-01",
+  //   paidDate: null,
+  //   status: "pending",
+  //   method: null,
+  // },
 ];
 
-export default function PaymentsPage() {
+export default async function PaymentsPage() {
+  
+  const supabase = await createClient();
+    
+  // Check if user is authenticated
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  // Fetch properties for this landlord
+  const { data: properties, error } = await supabase
+    .from('property')
+    .select('*')
+    .eq('landlord_id', user.id);
+
+  if (error) {
+  console.error('Error fetching properties:', error);
+  }
+
+  
+  
+  // Add all monthly payment amounts for total expected for the month
+  let totalToBePaid = 0;
+  if(properties != null)
+    {
+      for(let i = 0; i < properties.length; i++)
+        {
+          totalToBePaid += properties[i].monthly_rent;
+        }
+    }
+
+  
+  
+  // Aquire current month of payment and current date
+  const currentDate = new Date();
+  const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  let monthName = month[currentDate.getMonth()];
+
+  const expectedPaid = totalToBePaid;
   const totalPaid = payments.filter(p => p.status === "paid").reduce((sum, p) => sum + p.amount, 0);
   const totalPending = payments.filter(p => p.status === "pending").reduce((sum, p) => sum + p.amount, 0);
   const totalOverdue = payments.filter(p => p.status === "overdue").reduce((sum, p) => sum + p.amount, 0);
@@ -71,7 +115,7 @@ export default function PaymentsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Paid (This Month)</CardDescription>
+            <CardDescription>Total Paid For {monthName}</CardDescription>
             <CardTitle className="text-2xl text-green-600">
               ${totalPaid.toLocaleString()}
             </CardTitle>
@@ -95,9 +139,9 @@ export default function PaymentsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Expected This Month</CardDescription>
+            <CardDescription>Expected For {monthName}</CardDescription>
             <CardTitle className="text-2xl">
-              ${payments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
+              ${expectedPaid.toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -167,7 +211,7 @@ export default function PaymentsPage() {
                   <div className="text-2xl font-bold">${payment.amount.toLocaleString()}</div>
                   {payment.status === "overdue" && (
                     <Button variant="outline" size="sm" className="mt-2">
-                      Send Reminder
+                      <Link href="/renters/dashboard/messages">Send Reminder</Link>
                     </Button>
                   )}
                 </div>

@@ -37,70 +37,70 @@ export default async function IndexPage({ params }: PageProps) {
     notFound();
   }
 
-
-
-
-
-  // Get the lease for this tenant
+  // Fetch lease with user
   const { data: lease, error: leaseError } = await supabase
     .from('lease')
     .select(`*`)
+    .eq('tenant_id', user.id)
+    .eq('property_id', propertyId);
+
   if (leaseError) {
-    console.error('Error fetching properties:', leaseError);
+    console.error('Error fetching leased properties:', leaseError);
+    return;
   }
 
-  // landlord
-  const { data: properties, error: propertiesError } = await supabase
-    .from('property')
-    .select('id')
-    .eq('landlord_id', user.id);
-
-  if (propertiesError) {
-    console.error('Error fetching properties:', propertiesError);
-  }
-
-
-  console.log("Lease: ", lease)
-  console.log("property: ", property)
-  console.log("properties: ", properties)
-  
-
-
-
-
-
-  const calculatePaymentAmount = () => {
-
-    let rentPayment = property.monthly_rent * 100
-    let depositPayment = property.security_deposit * 100
-    // if(newTenant)
-    //   {
-    //     rentPayment += depositPayment
-    //   }
-
-    return rentPayment;
-  };
-
+  // Account for possible null values
   let userEmail: string = user.email ?? "Not Found";
   let userPhone: string = user.phone ?? "Not Found";
   let propertyName: string = property.name ?? "Not Found";
   let propertyAddress: string = property.address ?? "Not Found";
 
+  // Aquire current month of payment and current date
   const currentDate = new Date();
   const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   let dateName = month[currentDate.getMonth()];
 
+  // Function compares lease move in date with current date
+  function isSameMonth(date1: Date, date2: Date): boolean {
+    return date1.getFullYear() === date2.getFullYear() &&
+          date1.getMonth() === date2.getMonth();}
+
+  // Compare lease move in date with current date
+  const dateA = new Date(lease[0].move_in_date);
+
+  // Stripe payments are penny increments, multiple by 100 to setup for Stripe
+  let rentPayment = property.monthly_rent * 100
+  let depositPayment = property.security_deposit * 100
+
+  // Determine if payment is within same as current month
+  const paymentWithDeposit: boolean = isSameMonth(dateA, currentDate)
+
+  // Caluclate payment with or without deposit
+  const calculatePaymentAmount = () => {
+  
+    // If current date is the same month as lease starts, apply deposit to payment
+    if(paymentWithDeposit)
+      {
+        rentPayment += depositPayment
+      }
+
+    return rentPayment;
+  };
+
+  // Convert boolean to string for the metadata
+  let depositBoolean: string = paymentWithDeposit.toString();
+
   // Create PaymentIntent as soon as the page loads
   const { client_secret: clientSecret } = await stripe.paymentIntents.create({
-    description: propertyName + "\n\n" +propertyAddress,
+    description: propertyName + propertyAddress,
     amount: calculatePaymentAmount(),
     currency: 'USD',
-    metadata: {"Payment month": dateName, 
-      "email": userEmail,
-      "Phone" : userPhone,
+    metadata: {"Payment month:": dateName,
+      "Deposit included:": depositBoolean, 
+      "email:": userEmail,
+      "Phone:" : userPhone,
     },
     receipt_email: userEmail,
-    
     automatic_payment_methods: {enabled: true,},
   })
 

@@ -53,7 +53,13 @@ export default async function SuccessPage({ searchParams }) {
   if (!paymentIntent) redirect('/')
 
   const { status } = paymentIntent
-  
+
+  // Update Owner payment page
+  // if(status === "succeeded")
+  //   {
+  //     console.log("PAY Intent", paymentIntent)
+
+  //   }
 
   return (
     <div id="payment-status">

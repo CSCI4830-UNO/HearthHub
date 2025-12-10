@@ -18,6 +18,8 @@ interface SavedProperty {
   deposit: number | null;
   availableDate: string | null;
   amenities: string[];
+  images: string[];
+  saved: boolean;
 }
 
 export default function SavedPropertiesPage() {
@@ -51,22 +53,51 @@ export default function SavedPropertiesPage() {
         return;
       }
 
-      // Map database fields to display format
-      const mappedProperties = (data || []).map((property) => ({
-        id: property.id,
-        name: property.name,
-        address: property.address,
-        type: property.property_type,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        squareFeet: property.square_feet,
-        rent: property.monthly_rent,
-        deposit: property.security_deposit,
-        availableDate: property.available_date,
-        amenities: property.amenities || [],
+      
+
+      // The database uses snake_case but I want to use camelCase in my code
+      // So I'm mapping the fields to match my interface
+      const mappedProperties = (data || []).map((property) => {
+        let images: string[] = []; // local variable used for an Array of strings to hold the URLs
+
+        if (property.images) {
+            // If Supabase returns a string then convert into an Array of URLs then assigned directly to images
+            if (typeof property.images === "string") {
+              images = JSON.parse(property.images);
+            }
+            // If Supabase returns and Array then property.images is assigned directly to images
+            else if (Array.isArray(property.images)) {
+              images = property.images;
+            }
+          }
+
+        console.log(images); // Used to backtest the public URLS
+
+          return {
+            id: property.id,
+            name: property.name,
+            address: property.address,
+            type: property.property_type,
+            bedrooms: property.bedrooms,
+            bathrooms: property.bathrooms,
+            squareFeet: property.square_feet,
+            rent: property.monthly_rent,
+            deposit: property.security_deposit,
+            availableDate: property.available_date,
+            amenities: property.amenities || [], // Make sure it's always an array
+            images, // bucket
+            saved: false, // Will check localStorage below to see if its saved
+          };
+        });
+
+      // Get the saved favorites from localStorage
+      // Using JSON.parse because localStorage stores strings
+      const propertiesWithSaved: SavedProperty[] = mappedProperties.map((p) => ({
+        ...p,
+        saved: stored.includes(p.id), // Check if this property id is in the favorites list
       }));
 
-      setSavedProperties(mappedProperties);
+      setSavedProperties(propertiesWithSaved);
       setIsLoading(false);
     }
 
@@ -129,24 +160,28 @@ export default function SavedPropertiesPage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {savedProperties.map((property) => (
               <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                <div className="aspect-video bg-muted flex items-center justify-center relative">
-                  <Building2 className="h-12 w-12 text-muted-foreground" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                    onClick={() => removeFromSaved(property.id)} // 👈 Heart removes
-                  >
-                    <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                  </Button>
-                </div>
-                <CardHeader>
+                <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
+              {property.images && property.images.length > 0 ? (
+                <img
+                  src={property.images[0]} // show the first image
+                  alt={property.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Building2 className="h-12 w-12 text-muted-foreground" />
+              )}
+            </div>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
                   <CardTitle className="text-lg">{property.name}</CardTitle>
-                  <CardDescription className="flex items-center gap-1">
+                  <CardDescription className="flex items-center gap-1 mt-1">
                     <MapPin className="h-3 w-3" />
                     {property.address}
                   </CardDescription>
-                </CardHeader>
+                </div>
+              </div>
+            </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {/* Price */}

@@ -115,7 +115,7 @@ export default function RentPaymentsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Payments</h1>
-            <p className="text-muted-foreground">Properties currenty leased to make a rent payment</p>
+            <p className="text-muted-foreground">Properties currenty leased to make a payment</p>
           </div>
         </div>
         <div className="flex items-center justify-center py-12">
@@ -131,7 +131,7 @@ export default function RentPaymentsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Payments</h1>
-            <p className="text-muted-foreground">Properties currenty leased to make a rent payment</p>
+            <p className="text-muted-foreground">Properties currenty leased to make a payment</p>
           </div>
           <div className="text-sm text-muted-foreground">
             {savedProperties.length} leased
@@ -144,7 +144,7 @@ export default function RentPaymentsPage() {
               <Heart className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No leased properties yet</h3>
               <p className="text-muted-foreground text-center mb-4">
-                Start a new lease and make rent payments
+                Start a new lease and make a payment
               </p>
               <Button asChild>
                 <a href="/renters/dashboard/properties">Browse Properties</a>
