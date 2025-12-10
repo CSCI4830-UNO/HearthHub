@@ -1,9 +1,15 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
+// Configure nodemailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,31 +41,42 @@ export async function POST(request: NextRequest) {
       .single();
 
     // Send to landlord
-    await resend.emails.send({
-      from: "HearthHub <onboarding@resend.dev>",
-      to: "github@dadelarsen.com",
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: landlordEmail,
       subject: `New Message from ${renterData?.first_name} - ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px;">
           <h2>New Message from Tenant</h2>
           <p><strong>Property:</strong> ${property?.name}</p>
+          <p><strong>Address:</strong> ${property?.address}</p>
           <p><strong>From:</strong> ${renterData?.first_name} ${renterData?.last_name}</p>
-          <p><strong>Contact:</strong> ${renterData?.email}</p>
+          <p><strong>Contact:</strong> <a href="mailto:${renterData?.email}">${renterData?.email}</a></p>
           <hr>
-          <h3>${subject}</h3>
-          <p>${message.replace(/\n/g, "<br>")}</p>
+          <h3>Subject: ${subject}</h3>
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
+            ${message.replace(/\n/g, "<br>")}
+          </div>
         </div>
       `,
     });
 
     // Send confirmation to renter
-    await resend.emails.send({
-      from: "HearthHub <onboarding@resend.dev>",
-      to: "github@dadelarsen.com",
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: renterData?.email,
       subject: "Message Sent - HearthHub",
       html: `
-        <p>Your message has been sent to your landlord.</p>
-        <p>They will get back to you soon.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px;">
+          <h2>Message Sent Successfully</h2>
+          <p>Your message about <strong>${property?.name}</strong> has been sent to your landlord.</p>
+          <p>They will get back to you as soon as possible.</p>
+          <hr>
+          <h3>Your Message:</h3>
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
+            ${message.replace(/\n/g, "<br>")}
+          </div>
+        </div>
       `,
     });
 
