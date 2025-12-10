@@ -126,7 +126,6 @@ Feel free to explore these folders to learn where key behavior (auth, API calls,
 ## Deployment
 
 This project is deployed on vercel at https://hearthhub-teal.vercel.app/
-test for code review
 
 ## Troubleshooting
 
