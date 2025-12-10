@@ -93,3 +93,34 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Internal server error", details: String(err) }, { status: 500 });
     }
 }
+
+//delete endpoint that will delete a rental application if it is rejected
+export async function DELETE(request: NextRequest) {
+    try {
+        const supabase = await createClient();
+
+        const { searchParams } = new URL(request.url);
+        const applicationId = searchParams.get('applicationId');
+        
+        if (!applicationId) {
+            return NextResponse.json({ error: 'applicationId is required' }, { status: 400 });
+        }
+
+        // Delete the application
+        const { error } = await supabase
+            .from('rental_applications')
+            .delete()
+            .eq('id', applicationId);
+        
+        if (error) {
+            console.error('Error deleting application:', error);
+            return NextResponse.json({ error: 'Failed to delete application' }, { status: 500 });
+        }
+
+        return NextResponse.json({ message: 'Application deleted successfully' }, { status: 200 });
+        
+    } catch (err) {
+        console.error("Unhandled error in owner/applications DELETE:", err);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+}

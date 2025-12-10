@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import RejectButton from "@/components/reject-button";
 
 export default async function ApplicationsPage() {
   const supabase = await createClient();
@@ -238,11 +239,7 @@ export default async function ApplicationsPage() {
                             Approve
                           </Link>
                         </Button>
-                        <Button asChild variant="outline" size="sm" className="bg-red-200 hover:bg-red-300 text-black">
-                          <Link href={`/owners/dashboard/applications/${application.id}/reject`}>
-                            Reject
-                          </Link>
-                        </Button>
+                        <RejectButton applicationId={application.id} />
                       </>
                     )}
                   </div>
