@@ -11,6 +11,7 @@ import {
 import { Laptop, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+{/* This code is used for changing the layout of the website Dark/Light mode */}
 
 const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);
