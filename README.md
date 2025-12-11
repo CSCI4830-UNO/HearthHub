@@ -40,6 +40,10 @@ This repo is based on the official Next.js + Supabase starter kit. It contains a
 
 ## Quick start
 
+For detailed installation instructions, see the [Installation Guide](./instalation_guide.md).
+
+**Quick summary:**
+
 1. Clone the repository
    ```bash
    git clone https://github.com/CSCI4830-UNO/HearthHub.git
@@ -49,22 +53,21 @@ This repo is based on the official Next.js + Supabase starter kit. It contains a
 2. Install dependencies
    ```bash
    npm install
-   # or
-   # yarn
-   # pnpm install
    ```
 
 3. Copy the environment template and configure
    ```bash
    cp .env.example .env.local
    ```
-   Edit `.env.local` with the values described in the next section.
+   Edit `.env.local` with the values in the word doc.
 
 4. Run the development server
    ```bash
    npm run dev
    ```
    The app should be available at http://localhost:3000.
+
+**For comprehensive setup instructions and troubleshooting, refer to the [Installation Guide](./instalation_guide.md).**
 
 ---
 
