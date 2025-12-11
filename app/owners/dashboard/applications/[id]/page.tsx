@@ -235,7 +235,7 @@ export default async function ReviewApplicationPage({ params }: PageProps) {
 			)}
 
 			{/* Notes */}
-			{(application.notes || application.additional_notes) && (
+			{application.additional_notes && (
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
@@ -243,17 +243,8 @@ export default async function ReviewApplicationPage({ params }: PageProps) {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						{application.notes && (
-							<div>
-								<div className="text-sm font-medium mb-2">Application Notes</div>
-								<div className="text-sm whitespace-pre-wrap text-muted-foreground">
-									{application.notes}
-								</div>
-							</div>
-						)}
 						{application.additional_notes && (
 							<div>
-								<div className="text-sm font-medium mb-2">Additional Notes</div>
 								<div className="text-sm whitespace-pre-wrap text-muted-foreground">
 									{application.additional_notes}
 								</div>
