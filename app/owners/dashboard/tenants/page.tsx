@@ -136,19 +136,6 @@ export default function TenantsPage() {
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex flex-col gap-2 ml-4">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/owners/dashboard/tenants/${tenant.id}`}>
-                      View Details
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/owners/dashboard/messages?tenant=${tenant.id}`}>
-                      Message
-                    </Link>
-                  </Button>
-                </div>
               </div>
             </CardContent>
           </Card>
